@@ -3,8 +3,8 @@ from setuptools import setup, find_packages
 setup(
     name='bernmix',
     version='1.0.0',
-    description='BMM',
-    url='https://github.com/AVoss84/BMM',
+    description='Bernoulli mixture model',
+    url='https://github.com/AVoss84/bmm_mix',
     author='Alexander Vosseler',
     #keywords='rest restful api flask swagger openapi flask-restplus',
     packages = find_packages()
