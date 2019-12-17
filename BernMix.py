@@ -8,6 +8,8 @@ from imp import reload
 import matplotlib.pyplot as plt
 from bernmix.utils import bmm_utils as bmm
 
+import bernmix
+
 reload(bmm)
 
 seed(12)
