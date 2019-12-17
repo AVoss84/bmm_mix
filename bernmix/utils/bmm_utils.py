@@ -40,8 +40,14 @@ def E_step(X, theta, p, jitter=10**(-5)):
             s_nk = p[k]*prod(( theta[k,:]**(X[n,:]) ) * ( (1 - (theta[k,:]) )**(1-X[n,:]) ))
             #s_nk = exp(log(p[k]+noise) + sum(X[n,:]*log(theta[k,:]+noise) + (1-X[n,:])*log(1 - (theta[k,:]+noise) )))  # step 3
             S[n,k] = s_nk
-       Z_star[n,:] = S[n,:]/sum(S[n,:])     # step 4; posterior of mixture assignments
-       LL[n,:] = log(sum(S[n,:]))
+       #Z_star[n,:] = S[n,:]/sum(S[n,:])     # step 4; posterior of mixture assignments
+       #LL[n,:] = log(sum(S[n,:]))
+       marg = sum(S[n,:])     
+       if marg == 0.:
+          marg = 10**(-5) 
+          print("zero sum.")
+       Z_star[n,:] = S[n,:]/marg     # step 4; posterior of mixture assignments
+       LL[n,:] = log(marg)
     return sum(LL), Z_star
 
 #------------------------------------------------------------------------------
@@ -76,9 +82,15 @@ def loglike(X, p, theta):
             s_nk = p[k]*prod(( theta[k,:]**(X[n,:]) ) * ( (1 - (theta[k,:]) )**(1-X[n,:]) ))
             #s_nk = exp(log(p_k[k]) + sum(X[n,:]*log(theta[k,:]) + (1-X[n,:])*log(1-theta[k,:])))  # step 3
             S[n,k] = s_nk
-       LL[n,:] = log(sum(S[n,:]))    
+       #LL[n,:] = log(sum(S[n,:])) 
+       marg = sum(S[n,:])     
+       if marg == 0.:
+          marg = 10**(-5) 
+          print("zero sum.")
+       LL[n,:] = log(marg)
     return sum(LL)
 #------------------------------------------------------------------------   
+
 
 def mixture_EM(X, p_0, theta_0, n_iter=100, stopcrit=10**(-5)): 
     

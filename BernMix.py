@@ -8,18 +8,16 @@ from imp import reload
 import matplotlib.pyplot as plt
 from bernmix.utils import bmm_utils as bmm
 
-import bernmix
-
 reload(bmm)
 
 seed(12)
 
-K = 3           # number of mixture components
-D = 10           # dimensions / number of features     
+K = 5           # number of mixture components
+D = 20           # dimensions / number of features     
 
-#alphas = gamma(shape=1, size=K)               # shape parameter
-#p_true = dirichlet(alpha = alphas, size = 1)[0]
-p_true = np.array([.3,.6,.1])  # K>2
+alphas = gamma(shape=1, size=K)               # shape parameter
+p_true = dirichlet(alpha = alphas, size = 1)[0]
+#p_true = np.array([.3,.6,.1])  # K>2
 p_true
 
 theta_true = beta(a = .7, b = .9, size = K*D).reshape(D,K)
@@ -30,7 +28,7 @@ theta_true = beta(a = .7, b = .9, size = K*D).reshape(D,K)
 # Draw from Bernoulli:
 #probs = np.random.uniform(size=10000)
 #rbern = (np.random.uniform(size=D) < mu_k[:,Z[2]]) * 1
-X, Z = bmm.sample_bmm(1000, p_true, theta_true)
+X, Z = bmm.sample_bmm(10000, p_true, theta_true)
 
 X.shape
 Z.shape
@@ -39,7 +37,7 @@ Z.shape
 #----------------------------------------
 #seed(12)
 
-K = 3           # number of mixture components
+K = 5           # number of mixture components
 D = X.shape[1]
 
 #alphas = gamma(shape=1, size=K)               # shape parameters
@@ -50,9 +48,10 @@ theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
 #----------
 # Run EM:    
 #----------
-logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 100, stopcrit = 10**(-3))
+logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 70, stopcrit = 10**(-3))
 
 
+#----------------
 # Plot loglike.:
 #----------------
 plt.plot(logli, 'b--')
@@ -72,20 +71,24 @@ theta_true
 ################# REAL DATA ############################
 ########################################################
 
-image_size = 28 # width and length
+image_size = 28                  # width and length
 no_of_different_labels = 10 
 image_pixels = image_size**2
 image_pixels
 
 # Read data in:
 #os.getcwd()
-data_path = "C:\\Users\\Alexander\\Documents\\Github\\BMM\\data\\mnist\\"
+data_path = "C:\\Users\\Alexander\\Documents\\Github\\bmm_mix\\bernmix\\data\\"
 
 train_data = np.loadtxt(data_path + "mnist_train.csv", 
                         delimiter=",")
 
+train_data.shape
+
 test_data = np.loadtxt(data_path + "mnist_test.csv", 
                        delimiter=",") 
+
+test_data.shape
 
 test_data[:10]
 
