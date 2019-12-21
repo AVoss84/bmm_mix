@@ -23,7 +23,7 @@ def sample_bmm(N, p, theta):
     theta: matrix of success prob. of each dimension, per mixture comp.
     """    
     d = theta.shape[0]
-    Z = multinomial(1, p, size=N)
+    Z = multinomial(1, p, size=N)       # draw from categorical p.m.f
     print("Sampling from", d,"dimensional Bernoulli mixture with", len(p), "mixture components.")
     print("Number of random draws:", N)
     # Draw X_i| Z:  

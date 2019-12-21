@@ -21,13 +21,12 @@ reload(bmm)
 
 #seed(12)
 
-N = 3000
-K = 3           # number of mixture components
+N = 2000
+K = 10           # number of mixture components
 D = 10           # dimensions / number of features     
 
 alphas = gamma(shape=1, size=K)               # shape parameter
-#p_true = dirichlet(alpha = alphas, size = 1)[0]
-p_true = np.array([.3,.6,.1])  # K>2
+p_true = dirichlet(alpha = alphas, size = 1)[0]
 p_true
 
 theta_true = beta(a = .7, b = .9, size = K*D).reshape(D,K)
@@ -47,7 +46,7 @@ Z.shape
 #----------------------------------------
 #seed(12)
 
-K = 3           # number of mixture components
+K = 10           # number of mixture components
 D = X.shape[1]
 
 #alphas = gamma(shape=1, size=K)               # shape parameters
