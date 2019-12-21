@@ -6,18 +6,28 @@ from numpy.random import beta, binomial, dirichlet, uniform, gamma, seed, multin
 #from scipy.stats import multinomial
 from imp import reload
 import matplotlib.pyplot as plt
-from bernmix.utils import bmm_utils as bmm
 
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.datasets import load_digits
+from sklearn.preprocessing import scale
+from sklearn.pipeline import Pipeline
+
+os.chdir("C:\\Users\\Alexander\\Documents\\\Github\\bmm_mix")
+
+from bernmix.utils import bmm_utils as bmm
+#os.getcwd()
 reload(bmm)
 
-seed(12)
+#seed(12)
 
-K = 5           # number of mixture components
-D = 20           # dimensions / number of features     
+N = 3000
+K = 3           # number of mixture components
+D = 10           # dimensions / number of features     
 
 alphas = gamma(shape=1, size=K)               # shape parameter
-p_true = dirichlet(alpha = alphas, size = 1)[0]
-#p_true = np.array([.3,.6,.1])  # K>2
+#p_true = dirichlet(alpha = alphas, size = 1)[0]
+p_true = np.array([.3,.6,.1])  # K>2
 p_true
 
 theta_true = beta(a = .7, b = .9, size = K*D).reshape(D,K)
@@ -28,7 +38,7 @@ theta_true = beta(a = .7, b = .9, size = K*D).reshape(D,K)
 # Draw from Bernoulli:
 #probs = np.random.uniform(size=10000)
 #rbern = (np.random.uniform(size=D) < mu_k[:,Z[2]]) * 1
-X, Z = bmm.sample_bmm(10000, p_true, theta_true)
+X, Z = bmm.sample_bmm(N, p_true, theta_true)
 
 X.shape
 Z.shape
@@ -37,7 +47,7 @@ Z.shape
 #----------------------------------------
 #seed(12)
 
-K = 5           # number of mixture components
+K = 3           # number of mixture components
 D = X.shape[1]
 
 #alphas = gamma(shape=1, size=K)               # shape parameters
@@ -45,10 +55,11 @@ D = X.shape[1]
 p_0 = np.array([1/K]*K)  # K>2
 theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
 
+
 #----------
 # Run EM:    
 #----------
-logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 70, stopcrit = 10**(-3))
+logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 200, stopcrit = 10**(-3))
 
 
 #----------------
@@ -68,8 +79,43 @@ theta_em
 theta_true
 
 
-################# REAL DATA ############################
-########################################################
+#################### REAL DATA ############################
+###########################################################
+
+np.random.seed(42)
+
+X_digits, y_digits = load_digits(return_X_y=True)
+data = scale(X_digits)
+
+X_digits.shape
+
+n_samples, n_features = data.shape
+n_digits = len(np.unique(y_digits))
+labels = y_digits
+
+sample_size = 300
+
+print("n_digits: %d, \t n_samples %d, \t n_features %d"
+      % (n_digits, n_samples, n_features))
+
+pca = PCA(n_components=n_digits)
+kmeans = KMeans(n_clusters=n_digits,n_init=1)
+predictor = Pipeline([('pca', pca), ('kmeans', kmeans)])
+
+predict = predictor.fit(data).predict(data)
+predict
+
+stats = bmm.clusters_stats(predict, labels)
+purity = bmm.clusters_purity(stats)
+
+print("Plotting an extract of the 10 clusters, overall purity: %f" % purity)
+
+bmm.plot_clusters(predict, labels, stats, data)
+
+
+
+
+############################################################
 
 image_size = 28                  # width and length
 no_of_different_labels = 10 
@@ -95,14 +141,16 @@ test_data[:10]
 test_data[test_data==255]
 test_data.shape
 
+#train_imgs = ((train_data[:, 1:]/255) > .5)*1.
 train_imgs = np.asfarray(train_data[:, 1:])/255  # we avoid 0 values as inputs
 test_imgs = np.asfarray(test_data[:, 1:])/255
 
 X = train_imgs.copy()
+X = test_imgs.copy()
 
-#fac = 0.99 / 255
-#train_imgs = np.asfarray(train_data[:, 1:]) * fac + 0.01  # we avoid 0 values as inputs which are capable of preventing weight updates
-#test_imgs = np.asfarray(test_data[:, 1:]) * fac + 0.01
+fac = 0.99 / 255
+train_imgs = np.asfarray(train_data[:, 1:]) * fac + 0.01  # we avoid 0 values as inputs which are capable of preventing weight updates
+test_imgs = np.asfarray(test_data[:, 1:]) * fac + 0.01
 
 train_labels = np.asfarray(train_data[:, :1])
 test_labels = np.asfarray(test_data[:, :1])
@@ -162,11 +210,16 @@ test_labels_one_hot = data[5]
 train_imgs[2].shape
 
 
+# Log-sum trick:
+x = np.arange(1,1000)
+
+log(sum(exp(x)))
+
+a = max(x) + log(sum(exp(x - max(x))));
+a
 
 
-
-
-
+################################################################
 
 
 
