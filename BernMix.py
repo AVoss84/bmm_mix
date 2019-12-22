@@ -7,12 +7,6 @@ from numpy.random import beta, binomial, dirichlet, uniform, gamma, seed, multin
 from imp import reload
 import matplotlib.pyplot as plt
 
-from sklearn.cluster import KMeans
-from sklearn.decomposition import PCA
-from sklearn.datasets import load_digits
-from sklearn.preprocessing import scale
-from sklearn.pipeline import Pipeline
-
 os.chdir("C:\\Users\\Alexander\\Documents\\\Github\\bmm_mix")
 
 from bernmix.utils import bmm_utils as bmm
@@ -21,8 +15,8 @@ reload(bmm)
 
 #seed(12)
 
-N = 2000
-K = 10           # number of mixture components
+N = 1000
+K = 3           # number of mixture components
 D = 10           # dimensions / number of features     
 
 alphas = gamma(shape=1, size=K)               # shape parameter
@@ -46,7 +40,7 @@ Z.shape
 #----------------------------------------
 #seed(12)
 
-K = 10           # number of mixture components
+#K = 10           # number of mixture components
 D = X.shape[1]
 
 #alphas = gamma(shape=1, size=K)               # shape parameters
@@ -80,6 +74,13 @@ theta_true
 
 #################### REAL DATA ############################
 ###########################################################
+
+from sklearn.cluster import KMeans
+from sklearn.decomposition import PCA
+from sklearn.datasets import load_digits
+from sklearn.preprocessing import scale
+from sklearn.pipeline import Pipeline
+
 
 np.random.seed(42)
 

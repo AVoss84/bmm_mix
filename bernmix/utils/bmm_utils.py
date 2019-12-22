@@ -36,7 +36,7 @@ def sample_bmm(N, p, theta):
     
 
 #---------------------------------------------------------------------------------
-def E_step(X, theta, p, jitter=10**(-5)):
+def E_step_basic(X, theta, p, jitter=10**(-5)):
     
     """Expectation step: see steps 3-4 of Algorithm 1"""
     
@@ -81,6 +81,24 @@ def E_step(X, theta, p, jitter=10**(-5)):
     return sum(LL), Z_star
 #------------------------------------------------------------------------------
     
+def E_step(X, theta, p):
+    
+    """Expectation step: see steps 3-4 of Algorithm 1"""
+    
+    N = X.shape[0]; K = len(p)
+    theta = theta.T                # Transpose for easier comparability with derivations
+    S, Z_star, LL = np.empty((N,K)), np.empty((N,K)), np.empty((N,1))
+    
+    # Vectorized: correct!
+    #--------------------------
+    log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
+    s_n = np.sum(exp(log_S),axis=1)
+    denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)
+    Z_star = np.multiply(exp(log_S),denom)
+    LL = log(s_n).reshape(N,1)
+    return sum(LL), Z_star
+#------------------------------------------------------------------------------
+
 def M_step(X, Z_star):
     """
     Maximization step: steps 5-7 in Algorithm 1
@@ -118,11 +136,8 @@ def loglike(X, p, theta):
             except :
                print("Exception in loglikelihood computation!") 
                pass 
-            #s_nk = log(p[k]) + sum(X[n,:]*log(theta[k,:]) + (1-X[n,:])*log(1-theta[k,:]))
-            
-            #s_nk = p[k]*prod(( theta[k,:]**(X[n,:]) ) * ( (1 - (theta[k,:]) )**(1-X[n,:]) ))
-            
-            #s_nk = exp(log(p[k]) + sum(X[n,:]*log(theta[k,:]) + (1-X[n,:])*log(1-theta[k,:])))  # step 3
+            #s_nk = log(p[k]) + sum(X[n,:]*log(theta[k,:]) + (1-X[n,:])*log(1-theta[k,:]))            
+            #s_nk = p[k]*prod(( theta[k,:]**(X[n,:]) ) * ( (1 - (theta[k,:]) )**(1-X[n,:]) ))            
             #S[n,k] = s_nk
             S[n,k] = y_nk
             
@@ -131,12 +146,7 @@ def loglike(X, p, theta):
        m = np.amax(S[n,:]) 
        LL[n,:] = m + log(sum(exp(S[n,:]-m)))
 
-       #marg = sum(S[n,:])     
-       #if marg == 0.:
-       #   marg = 10**(-4) 
-       #   print("zero sum.")
        #LL[n,:] = log(marg)
-       #LL[n,:] = log(exp(b))*sum(exp(S[n,:]-b)) 
     return sum(LL)
 #------------------------------------------------------------------------   
 
@@ -164,7 +174,7 @@ def mixture_EM(X, p_0, theta_0, n_iter=100, stopcrit=10**(-5)):
           print("Stop criterion applied!\n")
           print(delta_ll)
           break;
-        elif i == n_iter:
+        elif i == (n_iter-1):
           print("Convergence not guaranteed.")            
         else:
           p_current, theta_current = p_update, theta_update  
