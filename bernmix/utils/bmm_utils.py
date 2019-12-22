@@ -119,9 +119,23 @@ def M_step(X, Z_star):
     return p_new, theta_new.T
 #-------------------------------------------------------------------------
  
+def loglike(X, p, theta):
+    
+    """(Incomplete) Loglikelihood of Bernoulli mixture model"""
+    
+    N, K = X.shape[0], len(p)
+    theta = theta.T       # Transpose for easier comparability with derivations
+    S, LL = np.empty((N,K)), np.empty((N,1))
+
+    log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))      
+    m = np.amax(log_S) 
+    s_n = np.sum(exp(log_S-m),axis=1)
+    LL = m + log(s_n).reshape(N,1)
+    return sum(LL)
+
 
 #--------------------------------------------------------------------------
-def loglike(X, p, theta):
+def loglike_basic(X, p, theta):
     
     """(Incomplete) Loglikelihood of Bernoulli mixture model"""
     
