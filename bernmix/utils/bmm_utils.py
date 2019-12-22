@@ -87,9 +87,8 @@ def E_step(X, theta, p):
     
     N = X.shape[0]; K = len(p)
     theta = theta.T                # Transpose for easier comparability with derivations
-    S, Z_star, LL = np.empty((N,K)), np.empty((N,K)), np.empty((N,1))
     
-    # Vectorized: correct!
+    # Vectorized version
     #--------------------------
     log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
     s_n = np.sum(exp(log_S),axis=1)
@@ -125,7 +124,6 @@ def loglike(X, p, theta):
     
     N, K = X.shape[0], len(p)
     theta = theta.T       # Transpose for easier comparability with derivations
-    S, LL = np.empty((N,K)), np.empty((N,1))
 
     log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))      
     m = np.amax(log_S) 
@@ -172,13 +170,14 @@ def mixture_EM(X, p_0, theta_0, n_iter=100, stopcrit=10**(-5)):
     i, converged = 0, 0 ;
     
     while i < n_iter :
+        
         # E-step and loglikelihood for current parameters:
         log_likes_t1, Z_star_new = E_step(X, theta_current, p_current)
         
         p_update, theta_update = M_step(X, Z_star_new)        
         
         log_likes_t = loglike(X, p_update, theta_update)    
-        
+                
         ll.append(log_likes_t)
         delta_ll = log_likes_t - log_likes_t1
         print(i,"- delta LL.:", delta_ll)

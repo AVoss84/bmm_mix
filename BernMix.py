@@ -52,7 +52,7 @@ theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
 #----------
 # Run EM:    
 #----------
-logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 200, stopcrit = 10**(-3))
+logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 200, stopcrit = 10**(-4))
 
 
 #----------------
