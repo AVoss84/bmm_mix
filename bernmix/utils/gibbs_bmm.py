@@ -66,8 +66,8 @@ log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T
 
 m = np.amax(log_S) 
 s_n = np.sum(exp(log_S-m),axis=1)
-#denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)
-#Z_star = np.multiply(exp(log_S),denom)
+denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)
+Z_star = np.multiply(exp(log_S),denom)
 LL_ = m + log(s_n).reshape(N,1)
 
 LL_[:6]
@@ -95,9 +95,90 @@ p_0 = dirichlet(alpha = alphas, size = 1)[0]
 theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
 
 
-loglike_new(X, p_0, theta_0)
+
+def M_step(X, Z_star):
+    """
+    Maximization step: steps 5-7 in Algorithm 1
+    """
+    N, D, K = X.shape[0], X.shape[1], Z_star.shape[1]
+    u, v, theta_new = np.empty((K,1)), np.empty((K,D)), np.empty((K,D))
+    for k in range(K):
+        for d in range(D):
+            v[k,d] = sum(Z_star[:,k]*X[:,d])
+        u[k,:] = sum(Z_star[:,k])
+        
+        if u[k,:] == 0.: 
+            u[k,:]  = 10**(-10)
+            
+        theta_new[k,:] = v[k,]/u[k,:] 
+    p_new = u/N ;   
+    assert round(sum(p_new),2) == 1., 'Step 6 does not produce probabilities!'
+    return p_new, theta_new.T
+
+Z_star = Z
+p_basic, th_basic = M_step(X, Z_star)
+p_basic
+
+u, v, theta_new = np.empty((K,1)), np.empty((K,D)), np.empty((K,D))
+for k in range(K):
+    for d in range(D):
+        v[k,d] = sum(Z_star[:,k]*X[:,d])
+    u[k,:] = sum(Z_star[:,k])
+    
+    if u[k,:] == 0.: 
+        u[k,:]  = 10**(-10)
+        
+    theta_new[k,:] = v[k,]/u[k,:] 
+v
+u    
+
+p_new = u/N ;   
+p_new
+assert round(sum(p_new),2) == 1., 'Step 6 does not produce probabilities!'
 
 
-loglike(X, p_0, theta_0)
+v_new = np.matmul(Z_star.T, X)
+v_new
+v_new.shape
+v
+
+u_new = np.sum(Z_star,axis=0).reshape(K,1)
+u_new
+u
+u.shape
+u_new.shape
+
+theta_new[1,:]
+v[1,]/u[1,:] 
+
+denom = np.repeat(u_new, [D], axis=0).reshape(K,D)
+denom.shape
+denom
+
+denom = np.where(denom==0, 10**(-10), denom)
+
+theta_New = np.multiply(v_new, 1/denom)
+theta_New
+theta_New.shape
+
+theta_new
+theta_new.shape
 
 
+def M_step_vec(X, Z_star):
+    """
+    Maximization step: steps 5-7 in Algorithm 1
+    """
+    N, D, K = X.shape[0], X.shape[1], Z_star.shape[1]
+    #u, v, theta_new = np.empty((K,1)), np.empty((K,D)), np.empty((K,D))
+    v = np.matmul(Z_star.T, X)
+    u = np.sum(Z_star,axis=0)#.reshape(K,1)
+    denom = np.repeat(u, [D], axis=0).reshape(K,D)
+    denom = np.where(denom==0, 10**(-10), denom)    
+    theta_new = np.multiply(v, 1/denom)
+    p_new = u/N ;   
+    assert round(sum(p_new),2) == 1., 'Step 6 does not produce probabilities!'
+    return p_new, theta_new.T
+
+M_step_vec(X, Z_star)
+M_step(X, Z_star)

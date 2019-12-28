@@ -103,6 +103,21 @@ def M_step(X, Z_star):
     Maximization step: steps 5-7 in Algorithm 1
     """
     N, D, K = X.shape[0], X.shape[1], Z_star.shape[1]
+    v = np.matmul(Z_star.T, X)
+    u = np.sum(Z_star,axis=0)#.reshape(K,1)
+    denom = np.repeat(u, [D], axis=0).reshape(K,D)
+    denom = np.where(denom==0, 10**(-10), denom)    
+    theta_new = np.multiply(v, 1/denom)
+    p_new = u/sum(u) ;   
+    assert round(sum(p_new),2) == 1., 'Step 6 does not produce probabilities!'
+    return p_new, theta_new.T
+
+#-----------------------------------------------------------------------------------
+def M_step_basic(X, Z_star):
+    """
+    Maximization step: steps 5-7 in Algorithm 1
+    """
+    N, D, K = X.shape[0], X.shape[1], Z_star.shape[1]
     u, v, theta_new = np.empty((K,1)), np.empty((K,D)), np.empty((K,D))
     for k in range(K):
         for d in range(D):
@@ -190,7 +205,7 @@ def mixture_EM(X, p_0, theta_0, n_iter=100, stopcrit=10**(-5)):
           break;
         elif i == (n_iter-1):
           print("Convergence not guaranteed.")            
-        elif local >= 5:
+        elif local >= 30:
           print("Local optimum reached.")    
           print(delta_ll)
           break;

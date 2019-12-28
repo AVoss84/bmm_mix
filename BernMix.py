@@ -15,14 +15,13 @@ reload(bmm)
 
 #seed(12)
 
-N = 1000
+N = 2000
 K = 3           # number of mixture components
 D = 10           # dimensions / number of features     
 
 alphas = gamma(shape=1, size=K)               # shape parameter
 p_true = dirichlet(alpha = alphas, size = 1)[0]
 p_true
-
 theta_true = beta(a = .7, b = .9, size = K*D).reshape(D,K)
 
 
@@ -48,11 +47,10 @@ D = X.shape[1]
 p_0 = np.array([1/K]*K)  # K>2
 theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
 
-
 #----------
 # Run EM:    
 #----------
-logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 200, stopcrit = 10**(-4))
+logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 300, stopcrit = 10**(-4))
 
 
 #----------------
