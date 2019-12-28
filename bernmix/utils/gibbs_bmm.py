@@ -71,6 +71,10 @@ s_n = np.sum(exp(log_S-m),axis=1)
 LL_ = m + log(s_n).reshape(N,1)
 
 LL_[:6]
+LL[:6]
+
+sum(LL)
+sum(LL_)
 
 def loglike_new(X, p, theta):
     

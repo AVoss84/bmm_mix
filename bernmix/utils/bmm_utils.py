@@ -124,7 +124,6 @@ def loglike(X, p, theta):
     
     N, K = X.shape[0], len(p)
     theta = theta.T       # Transpose for easier comparability with derivations
-
     log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))      
     m = np.amax(log_S) 
     s_n = np.sum(exp(log_S-m),axis=1)
@@ -167,7 +166,7 @@ def mixture_EM(X, p_0, theta_0, n_iter=100, stopcrit=10**(-5)):
     
     p_current, theta_current = p_0, theta_0
     ll = [loglike(X, p_0, theta_0)]        # store log-likehoods for each iteration
-    i, converged = 0, 0 ;
+    i, converged, local, delta_ll = 0, 0, 0, 10**5 ;
     
     while i < n_iter :
         
@@ -179,9 +178,11 @@ def mixture_EM(X, p_0, theta_0, n_iter=100, stopcrit=10**(-5)):
         log_likes_t = loglike(X, p_update, theta_update)    
                 
         ll.append(log_likes_t)
+        delta_ll_old = delta_ll
         delta_ll = log_likes_t - log_likes_t1
         print(i,"- delta LL.:", delta_ll)
         converged += (abs(delta_ll) < stopcrit)*1.
+        local += (abs(delta_ll) > abs(delta_ll_old))*1
         
         if converged >= 5:
           print("Stop criterion applied!\n")
@@ -189,9 +190,12 @@ def mixture_EM(X, p_0, theta_0, n_iter=100, stopcrit=10**(-5)):
           break;
         elif i == (n_iter-1):
           print("Convergence not guaranteed.")            
+        elif local >= 5:
+          print("Local optimum reached.")    
+          print(delta_ll)
+          break;
         else:
           p_current, theta_current = p_update, theta_update  
-                    
         i += 1
     return ll, p_update, theta_update
 #------------------------------------------------------------------

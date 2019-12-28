@@ -26,8 +26,8 @@ p_true
 theta_true = beta(a = .7, b = .9, size = K*D).reshape(D,K)
 
 
-# Sample from mixture model
-#-----------------------------
+# Generate data from mixture model:
+#------------------------------------
 # Draw from Bernoulli:
 #probs = np.random.uniform(size=10000)
 #rbern = (np.random.uniform(size=D) < mu_k[:,Z[2]]) * 1
