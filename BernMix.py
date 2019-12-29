@@ -2,8 +2,7 @@
 import os, pickle, copy
 import numpy as np
 from numpy import log, sum, exp, prod
-from numpy.random import beta, binomial, dirichlet, uniform, gamma, seed, multinomial
-#from scipy.stats import multinomial
+from numpy.random import beta, binomial, dirichlet, uniform, gamma, seed, multinomial, gumbel
 from imp import reload
 import matplotlib.pyplot as plt
 
@@ -42,21 +41,22 @@ Z.shape
 #K = 10           # number of mixture components
 D = X.shape[1]
 
-#alphas = gamma(shape=1, size=K)               # shape parameters
-#p_0 = dirichlet(alpha = alphas, size = 1)[0]
-p_0 = np.array([1/K]*K)  # K>2
+alphas = gamma(shape=1, size=K)               # shape parameters
+p_0 = dirichlet(alpha = alphas, size = 1)[0]
+#p_0 = np.array([1/K]*K)  # K>2
 theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
 
 #----------
 # Run EM:    
 #----------
-logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 300, stopcrit = 10**(-4))
-
+logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 300, stopcrit = 10**(-3))
 
 #----------------
 # Plot loglike.:
 #----------------
-plt.plot(logli, 'b--')
+burn_in = 5
+
+plt.plot(logli[burn_in:], 'b--')
 plt.title("Convergence check")
 plt.xlabel('iterations')
 plt.ylabel('loglikelihood')
@@ -66,7 +66,7 @@ plt.show()
 p_em
 p_true
 
-theta_em
+theta_em_old
 theta_true
 
 

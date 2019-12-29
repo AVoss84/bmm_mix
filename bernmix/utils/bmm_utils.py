@@ -1,11 +1,13 @@
 
 import numpy as np
 from numpy import log, sum, exp, prod
-from numpy.random import beta, binomial, dirichlet, multinomial, uniform, gamma, seed
+from numpy.random import beta, binomial, dirichlet, multinomial, uniform, gamma, seed, standard_gamma, gumbel
 
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+#from scipy.stats import multinomial
 
 #from IPython.display import display, clear_output
 #from __future__ import print_function
@@ -177,7 +179,7 @@ def loglike_basic(X, p, theta):
 #------------------------------------------------------------------------   
 
 
-def mixture_EM(X, p_0, theta_0, n_iter=100, stopcrit=10**(-5)): 
+def mixture_EM(X, p_0, theta_0, n_iter=100, stopcrit=10**(-5), verbose = True): 
     
     p_current, theta_current = p_0, theta_0
     ll = [loglike(X, p_0, theta_0)]        # store log-likehoods for each iteration
@@ -185,22 +187,29 @@ def mixture_EM(X, p_0, theta_0, n_iter=100, stopcrit=10**(-5)):
     
     while i < n_iter :
         
-        # E-step and loglikelihood for current parameters:
+        # E-step and :
         log_likes_t1, Z_star_new = E_step(X, theta_current, p_current)
+        #print(log_likes_t1)
         
+        # M-step
         p_update, theta_update = M_step(X, Z_star_new)        
-        
+        # Incomplete loglikelihood:
         log_likes_t = loglike(X, p_update, theta_update)    
-                
+        #print(log_likes_t)        
+        
+        #if np.isnan(log_likes_t):
+        #   log_likes_t = log_likes_t1
+        
         ll.append(log_likes_t)
         delta_ll_old = delta_ll
         delta_ll = log_likes_t - log_likes_t1
-        print(i,"- delta LL.:", delta_ll)
+        if verbose and (i%5 == 0):
+           print(i,"- delta LL.:", delta_ll)
         converged += (abs(delta_ll) < stopcrit)*1.
         local += (abs(delta_ll) > abs(delta_ll_old))*1
         
         if converged >= 5:
-          print("Stop criterion applied!\n")
+          print("Stop criterion applied!")
           print(delta_ll)
           break;
         elif i == (n_iter-1):
@@ -261,5 +270,29 @@ def clusters_purity(clusters_stats):
     majority_sum  = clusters_stats[:,0].sum()
     n = clusters_stats[:,1].sum()
     return majority_sum / n
+
+
+def dirichlet_sample(alphas):
+    """
+    Generate samples from an array of alpha distributions.
+    """
+    r = standard_gamma(alphas)
+    return r / r.sum(-1, keepdims=True)
+
+
+def discrete_sample(alphas):
+    """
+    Draw from categorical distr. using the Gumbel-max-trick.
+    """
+    N,K = alphas.shape
+    #uniform = np.random.rand(len(alpha))     # uniform random draws
+    #gumbels = -log(-log(uniform)) + log(alpha)
+    gumbels = log(alphas) + gumbel(loc=0, scale=1, size=alphas.shape)
+    categ_level = gumbels.argmax(axis=1)
+    cat_array = np.repeat(categ_level, [K], axis=0).reshape(N,K)
+    seq = np.arange(0,K,1)
+    seq_array = np.repeat(seq, [N], axis=0).reshape(K,N).T
+    onehot = np.equal(seq_array, cat_array)*1.
+    return categ_level, onehot
 
 

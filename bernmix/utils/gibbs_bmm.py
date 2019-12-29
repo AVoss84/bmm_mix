@@ -96,25 +96,6 @@ theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
 
 
 
-def M_step(X, Z_star):
-    """
-    Maximization step: steps 5-7 in Algorithm 1
-    """
-    N, D, K = X.shape[0], X.shape[1], Z_star.shape[1]
-    u, v, theta_new = np.empty((K,1)), np.empty((K,D)), np.empty((K,D))
-    for k in range(K):
-        for d in range(D):
-            v[k,d] = sum(Z_star[:,k]*X[:,d])
-        u[k,:] = sum(Z_star[:,k])
-        
-        if u[k,:] == 0.: 
-            u[k,:]  = 10**(-10)
-            
-        theta_new[k,:] = v[k,]/u[k,:] 
-    p_new = u/N ;   
-    assert round(sum(p_new),2) == 1., 'Step 6 does not produce probabilities!'
-    return p_new, theta_new.T
-
 Z_star = Z
 p_basic, th_basic = M_step(X, Z_star)
 p_basic
@@ -131,7 +112,7 @@ for k in range(K):
     theta_new[k,:] = v[k,]/u[k,:] 
 v
 u    
-
+u
 p_new = u/N ;   
 p_new
 assert round(sum(p_new),2) == 1., 'Step 6 does not produce probabilities!'
@@ -182,3 +163,92 @@ def M_step_vec(X, Z_star):
 
 M_step_vec(X, Z_star)
 M_step(X, Z_star)
+
+def E_step(X, theta, p):
+    
+    """Expectation step: see steps 3-4 of Algorithm 1"""
+    
+    N = X.shape[0]; K = len(p)
+    theta = theta.T                # Transpose for easier comparability with derivations
+    
+    # Vectorized version
+    #--------------------------
+    log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
+    s_n = np.sum(exp(log_S),axis=1)
+    denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)
+    Z_star = np.multiply(exp(log_S),denom)
+    LL = log(s_n).reshape(N,1)
+    return sum(LL), Z_star
+
+
+
+N, D, K = X.shape[0], X.shape[1], Z_star.shape[1]
+theta = theta.T                # Transpose for easier comparability with derivations
+
+# Vectorized version
+#--------------------------
+log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
+s_n = np.sum(exp(log_S),axis=1)
+
+denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)
+S_n = np.multiply(exp(log_S),denom)
+S_n.shape
+#Z_star = np.multiply(exp(log_S),denom)
+
+
+Z_star = np.empty((N,K))
+#or draw indiviual alphas...
+#alphas = 2 ** np.random.randint(0, 4, size=(6, 3))
+
+gammas = np.repeat(np.array([.1,.3,.6]), [N], axis=0).reshape(K,D).T
+
+
+S_n.shape
+
+alphas = np.array([.1,.3,.6])
+
+_, Z_star = discrete_sample(S_n)  # draw from categorical p.m.f
+
+v = np.matmul(Z_star.T, X)
+v.shape
+u = np.sum(Z_star,axis=0)#.reshape(K,1)
+u
+
+p_t = bmm.dirichlet_sample(alphas + u)
+p_t
+
+
+
+
+for i in range(N):
+  #print(i)        
+  Z_star[i,:] = multinomial(n=1, p = S_n[i,:]).rvs(size=1)
+  p_t = dirichlet(alpha = alphas[i,:]).rvs(size=1)
+
+import cupy
+
+
+#LL = log(s_n).reshape(N,1)
+#sum(LL)
+
+v = np.matmul(Z_star.T, X)
+u = np.sum(Z_star,axis=0)#.reshape(K,1)
+u
+
+p_new = u/N ;   
+#assert round(sum(p_new),2) == 1., 'Step 6 does not produce probabilities!'
+p_new
+
+
+
+
+unif.reshape(10,3)
+
+def qf_gumbel(p):
+   return -log(-log(p))
+
+qf_gumbel(unif)
+
+np.apply_along_axis(my_func, 0, b)
+
+
