@@ -286,7 +286,7 @@ def discrete_sample(alphas):
     """
     N,K = alphas.shape
     #uniform = np.random.rand(len(alpha))     # uniform random draws
-    #gumbels = -log(-log(uniform)) + log(alpha)
+    #gumbels = -log(-log(uniform)) + log(alphas)
     gumbels = log(alphas) + gumbel(loc=0, scale=1, size=alphas.shape)
     categ_level = gumbels.argmax(axis=1)
     cat_array = np.repeat(categ_level, [K], axis=0).reshape(N,K)
@@ -295,4 +295,35 @@ def discrete_sample(alphas):
     onehot = np.equal(seq_array, cat_array)*1.
     return categ_level, onehot
 
+
+def gibbs_pass(p_old, thetas_old, X, alphas = np.array([.1,.3,.6]),
+               hyper_para = {'gammas': np.array([.1,.3,.6]), 'deltas': np.array([1,3,6])}
+               ):
+    
+    p = deepcopy(p_old)
+    theta = deepcopy(thetas_old)     
+    N, D, K = X.shape[0], X.shape[1], len(p)
+    
+    gammas = np.repeat(hyper_para['gammas'], [D], axis=0).reshape(K,D)
+    deltas = np.repeat(hyper_para['deltas'], [D], axis=0).reshape(K,D)
+    theta = theta.T                # Transpose for easier comparability with derivations
+    
+    # Vectorized version
+    #--------------------------
+    log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
+    log_S = np.nan_to_num(log_S)
+    s_n = np.sum(exp(log_S),axis=1)
+    denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)
+    S_n = np.multiply(exp(log_S),denom)
+            
+    _, Z_star = discrete_sample(S_n)  # draw from categorical p.m.f
+    
+    v = np.matmul(Z_star.T, X)
+    u = np.sum(Z_star,axis=0)
+    us = np.repeat(u, [D], axis=0).reshape(K,D)
+    
+    p_new = dirichlet_sample(alphas + u)
+    
+    thetas_new = beta(a = gammas + v, b = deltas + us - v, size = v.shape)
+    return p_new, thetas_new.T
 

@@ -1,8 +1,8 @@
 
-import os, pickle, copy
+import os, pickle
 import numpy as np
 from numpy import log, sum, exp, prod
-from numpy.random import beta, binomial, dirichlet, uniform, gamma, seed, multinomial, gumbel
+from numpy.random import beta, binomial, dirichlet, uniform, gamma, seed, multinomial, gumbel, rand
 from imp import reload
 import matplotlib.pyplot as plt
 from copy import deepcopy
@@ -15,9 +15,9 @@ reload(bmm)
 
 #seed(12)
 
-N = 2000
+N = 10000
 K = 3           # number of mixture components
-D = 10           # dimensions / number of features     
+D = 50           # dimensions / number of features     
 
 alphas = gamma(shape=1, size=K)               # shape parameter
 p_true = dirichlet(alpha = alphas, size = 1)[0]
@@ -44,13 +44,14 @@ D = X.shape[1]
 
 alphas = gamma(shape=1, size=K)               # shape parameters
 p_0 = dirichlet(alpha = alphas, size = 1)[0]
-#p_0 = np.array([1/K]*K)  # K>2
+#p_0 = np.array([1/K]*K)  
 theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
 
 #----------
 # Run EM:    
 #----------
 logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 300, stopcrit = 10**(-3))
+
 
 #----------------
 # Plot loglike.:

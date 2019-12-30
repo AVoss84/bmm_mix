@@ -227,55 +227,122 @@ thetas
 #LL = log(s_n).reshape(N,1)
 #sum(LL)
 
+MC = 4000
+N, D, K = X.shape[0], X.shape[1], 3
 
-def gibbs_pass(p_old, thetas_old, X, alphas = np.array([.1,.3,.6])):
+p_draws = np.empty((MC,K))
+theta_draws = np.empty((MC,X.shape[1],K))
+
+alphas = gamma(shape=1, size=K)               # shape parameters
+p_0 = dirichlet(alpha = alphas, size = 1)[0]
+#p_0 = np.array([1/K]*K)  # K>2
+theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
+p_draws[0,:], theta_draws[0,:,:] = p_0, theta_0 
+
+gammas, deltas = gamma(shape=1.5, size=K), rand(K)     # uniform random draws   
+hyper_para = {'gammas': gammas, 'deltas': deltas}
+
+i=47
+
+for i in range(1,MC):   
     
-    p = deepcopy(p_old)
-    theta = deepcopy(thetas_old)     
+    print(i)
+    p = deepcopy(p_draws[i-1,:])
+    theta = deepcopy(theta_draws[i-1,:,:])
+     
     N, D, K = X.shape[0], X.shape[1], len(p)
-    
-    gammas = np.repeat(np.array([.1,.3,.6]), [D], axis=0).reshape(K,D)
-    deltas = np.repeat(np.array([1,3,6]), [D], axis=0).reshape(K,D)
+
+    gammas = np.repeat(hyper_para['gammas'], [D], axis=0).reshape(K,D)
+    deltas = np.repeat(hyper_para['deltas'], [D], axis=0).reshape(K,D)
     theta = theta.T                # Transpose for easier comparability with derivations
-    
+
     # Vectorized version
     #--------------------------
     log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
+    
+    log_S = np.nan_to_num(log_S)
+    log_S
     s_n = np.sum(exp(log_S),axis=1)
     denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)
     S_n = np.multiply(exp(log_S),denom)
             
-    _, Z_star = discrete_sample(S_n)  # draw from categorical p.m.f
-    
+    _, Z_star = bmm.discrete_sample(S_n)  # draw from categorical p.m.f
+    Z_star    
+
     v = np.matmul(Z_star.T, X)
     u = np.sum(Z_star,axis=0)
     us = np.repeat(u, [D], axis=0).reshape(K,D)
     
-    p_new = bmm.dirichlet_sample(alphas + u)
+    p_draws[i,:] = bmm.dirichlet_sample(alphas + u)
     
-    thetas_new = beta(a = gammas + v, b = deltas + us - v, size = v.shape)
-    return p_new, thetas_new.T
+    theta_draws[i,:,:] = beta(a = gammas + v, b = deltas + us - v, size = v.shape).T
+    i += 1
 
-#p_new, thetas_new = gibbs_pass(p_0, theta_0, X, alphas = np.array([.1,.3,.6]))
 
 # Gibbs sampler
 ###########################
-MC = 100
+
+from pdb import set_trace
+
+MC = 4000
+N, D, K = X.shape[0], X.shape[1], 3
+
 p_draws = np.empty((MC,K))
 theta_draws = np.empty((MC,X.shape[1],K))
+
+alphas = gamma(shape=1, size=K)               # shape parameters
+#p_0 = dirichlet(alpha = alphas, size = 1)[0]
+p_0 = np.array([1/K]*K)
+#p_0 = np.array([1/K]*K)  # K>2
+theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
 p_draws[0,:], theta_draws[0,:,:] = p_0, theta_0 
 
+gammas, deltas = gamma(shape=1.5, size=K), rand(K)     # uniform random draws   
+
 for i in range(1,MC):   
-    if i%10 == 0:    
-       p_draws[i,:], theta_draws[i,:,:] = gibbs_pass(p_draws[i-1,:], theta_draws[i-1,:,:], X, alphas = np.array([.1,.3,.6]))
+    
+    #set_trace()
+    if i%100 == 0:   
+        print(i)
+        
+    p_draws[i,:], theta_draws[i,:,:] = bmm.gibbs_pass(p_draws[i-1,:], theta_draws[i-1,:,:], X, 
+                                   alphas = alphas, hyper_para = {'gammas': gammas, 'deltas': deltas})
+print("Finished!")
+
 
 p_draws
-theta_draws
-    
-import matplotlib.pyplot as plt
+theta_draws.shape
+
+theta_bayes = np.mean(theta_draws,axis=0)
+theta_bayes#.shape
+theta_true
+   
+p_bayes = np.mean(p_draws,axis=0)
+p_bayes
+
+p_true
+
 
 plt.figure(figsize=(10, 20))
 for j in range(p_draws.shape[1]):
     plt.subplot(5,2,j+1)
-    plt.plot(p_draws[:, j]);
-    plt.title('Trace for $\lambda$%d' % j)
+    plt.plot(p_draws[100:, j]);
+    plt.title('Trace for $p_{%d}$' % j)
+
+
+#from statsmodels.tsa import stattools
+#from statsmodels.tsa.stattools import acf, pacf
+#from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+
+# Calculate ACF and PACF upto 50 lags
+# acf_50 = acf(df.value, nlags=50)
+# pacf_50 = pacf(df.value, nlags=50)
+
+# Draw Plot
+fig, axes = plt.subplots(1,2,figsize=(16,3), dpi= 100)
+plot_acf(df.value.tolist(), lags=50, ax=axes[0])
+plot_pacf(df.value.tolist(), lags=50, ax=axes[1])
+
+
+
+    
