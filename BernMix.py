@@ -5,6 +5,7 @@ from numpy import log, sum, exp, prod
 from numpy.random import beta, binomial, dirichlet, uniform, gamma, seed, multinomial, gumbel
 from imp import reload
 import matplotlib.pyplot as plt
+from copy import deepcopy
 
 os.chdir("C:\\Users\\Alexander\\Documents\\\Github\\bmm_mix")
 

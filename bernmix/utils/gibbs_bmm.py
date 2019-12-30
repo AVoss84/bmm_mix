@@ -181,8 +181,7 @@ def E_step(X, theta, p):
     return sum(LL), Z_star
 
 
-
-N, D, K = X.shape[0], X.shape[1], Z_star.shape[1]
+N, D, K = X.shape[0], X.shape[1], len(p)
 theta = theta.T                # Transpose for easier comparability with derivations
 
 # Vectorized version
@@ -193,17 +192,15 @@ s_n = np.sum(exp(log_S),axis=1)
 denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)
 S_n = np.multiply(exp(log_S),denom)
 S_n.shape
-#Z_star = np.multiply(exp(log_S),denom)
 
-
-Z_star = np.empty((N,K))
 #or draw indiviual alphas...
 #alphas = 2 ** np.random.randint(0, 4, size=(6, 3))
 
-gammas = np.repeat(np.array([.1,.3,.6]), [N], axis=0).reshape(K,D).T
+gammas = np.repeat(np.array([.1,.3,.6]), [D], axis=0).reshape(K,D)
+gammas
 
-
-S_n.shape
+deltas = np.repeat(np.array([1,3,6]), [D], axis=0).reshape(K,D)
+deltas.shape
 
 alphas = np.array([.1,.3,.6])
 
@@ -211,44 +208,74 @@ _, Z_star = discrete_sample(S_n)  # draw from categorical p.m.f
 
 v = np.matmul(Z_star.T, X)
 v.shape
-u = np.sum(Z_star,axis=0)#.reshape(K,1)
+
+u = np.sum(Z_star,axis=0)
 u
+
+us = np.repeat(u, [D], axis=0).reshape(K,D)
+us.shape
 
 p_t = bmm.dirichlet_sample(alphas + u)
 p_t
 
+thetas = beta(a = gammas + v, b = deltas + us - v, size=v.shape)
+thetas
 
-
-
-for i in range(N):
-  #print(i)        
-  Z_star[i,:] = multinomial(n=1, p = S_n[i,:]).rvs(size=1)
-  p_t = dirichlet(alpha = alphas[i,:]).rvs(size=1)
-
-import cupy
+#import cupy
 
 
 #LL = log(s_n).reshape(N,1)
 #sum(LL)
 
-v = np.matmul(Z_star.T, X)
-u = np.sum(Z_star,axis=0)#.reshape(K,1)
-u
 
-p_new = u/N ;   
-#assert round(sum(p_new),2) == 1., 'Step 6 does not produce probabilities!'
-p_new
+def gibbs_pass(p_old, thetas_old, X, alphas = np.array([.1,.3,.6])):
+    
+    p = deepcopy(p_old)
+    theta = deepcopy(thetas_old)     
+    N, D, K = X.shape[0], X.shape[1], len(p)
+    
+    gammas = np.repeat(np.array([.1,.3,.6]), [D], axis=0).reshape(K,D)
+    deltas = np.repeat(np.array([1,3,6]), [D], axis=0).reshape(K,D)
+    theta = theta.T                # Transpose for easier comparability with derivations
+    
+    # Vectorized version
+    #--------------------------
+    log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
+    s_n = np.sum(exp(log_S),axis=1)
+    denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)
+    S_n = np.multiply(exp(log_S),denom)
+            
+    _, Z_star = discrete_sample(S_n)  # draw from categorical p.m.f
+    
+    v = np.matmul(Z_star.T, X)
+    u = np.sum(Z_star,axis=0)
+    us = np.repeat(u, [D], axis=0).reshape(K,D)
+    
+    p_new = bmm.dirichlet_sample(alphas + u)
+    
+    thetas_new = beta(a = gammas + v, b = deltas + us - v, size = v.shape)
+    return p_new, thetas_new.T
 
+#p_new, thetas_new = gibbs_pass(p_0, theta_0, X, alphas = np.array([.1,.3,.6]))
 
+# Gibbs sampler
+###########################
+MC = 100
+p_draws = np.empty((MC,K))
+theta_draws = np.empty((MC,X.shape[1],K))
+p_draws[0,:], theta_draws[0,:,:] = p_0, theta_0 
 
+for i in range(1,MC):   
+    if i%10 == 0:    
+       p_draws[i,:], theta_draws[i,:,:] = gibbs_pass(p_draws[i-1,:], theta_draws[i-1,:,:], X, alphas = np.array([.1,.3,.6]))
 
-unif.reshape(10,3)
+p_draws
+theta_draws
+    
+import matplotlib.pyplot as plt
 
-def qf_gumbel(p):
-   return -log(-log(p))
-
-qf_gumbel(unif)
-
-np.apply_along_axis(my_func, 0, b)
-
-
+plt.figure(figsize=(10, 20))
+for j in range(p_draws.shape[1]):
+    plt.subplot(5,2,j+1)
+    plt.plot(p_draws[:, j]);
+    plt.title('Trace for $\lambda$%d' % j)

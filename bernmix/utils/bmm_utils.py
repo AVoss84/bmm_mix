@@ -2,7 +2,7 @@
 import numpy as np
 from numpy import log, sum, exp, prod
 from numpy.random import beta, binomial, dirichlet, multinomial, uniform, gamma, seed, standard_gamma, gumbel
-
+from copy import deepcopy
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
