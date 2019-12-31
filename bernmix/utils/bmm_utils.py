@@ -93,6 +93,8 @@ def E_step(X, theta, p):
     # Vectorized version
     #--------------------------
     log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
+    log_S = np.nan_to_num(log_S)
+    
     s_n = np.sum(exp(log_S),axis=1)
     denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)
     Z_star = np.multiply(exp(log_S),denom)
@@ -142,6 +144,8 @@ def loglike(X, p, theta):
     N, K = X.shape[0], len(p)
     theta = theta.T       # Transpose for easier comparability with derivations
     log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))      
+    log_S = np.nan_to_num(log_S)
+    
     m = np.amax(log_S) 
     s_n = np.sum(exp(log_S-m),axis=1)
     LL = m + log(s_n).reshape(N,1)
@@ -312,6 +316,7 @@ def gibbs_pass(p_old, thetas_old, X, alphas = np.array([.1,.3,.6]),
     #--------------------------
     log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
     log_S = np.nan_to_num(log_S)
+    
     s_n = np.sum(exp(log_S),axis=1)
     denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)
     S_n = np.multiply(exp(log_S),denom)

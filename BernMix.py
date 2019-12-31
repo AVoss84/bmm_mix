@@ -6,6 +6,8 @@ from numpy.random import beta, binomial, dirichlet, uniform, gamma, seed, multin
 from imp import reload
 import matplotlib.pyplot as plt
 from copy import deepcopy
+from statsmodels.tsa.stattools import acf, pacf
+from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 os.chdir("C:\\Users\\Alexander\\Documents\\\Github\\bmm_mix")
 
@@ -68,7 +70,7 @@ plt.show()
 p_em
 p_true
 
-theta_em_old
+theta_em
 theta_true
 
 

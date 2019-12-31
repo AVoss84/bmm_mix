@@ -291,9 +291,8 @@ p_draws = np.empty((MC,K))
 theta_draws = np.empty((MC,X.shape[1],K))
 
 alphas = gamma(shape=1, size=K)               # shape parameters
-#p_0 = dirichlet(alpha = alphas, size = 1)[0]
-p_0 = np.array([1/K]*K)
-#p_0 = np.array([1/K]*K)  # K>2
+p_0 = dirichlet(alpha = alphas, size = 1)[0]
+#p_0 = np.array([1/K]*K)
 theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
 p_draws[0,:], theta_draws[0,:,:] = p_0, theta_0 
 
@@ -310,7 +309,7 @@ for i in range(1,MC):
 print("Finished!")
 
 
-p_draws
+p_draws.shape
 theta_draws.shape
 
 theta_bayes = np.mean(theta_draws,axis=0)
@@ -319,7 +318,6 @@ theta_true
    
 p_bayes = np.mean(p_draws,axis=0)
 p_bayes
-
 p_true
 
 
@@ -329,19 +327,21 @@ for j in range(p_draws.shape[1]):
     plt.plot(p_draws[100:, j]);
     plt.title('Trace for $p_{%d}$' % j)
 
+plt.figure(figsize=(10, 20))
+for j in range(theta_draws.shape[1]):
+    #plt.subplot(5,2,j+1)
+    plt.plot(theta_draws[100:,j, 0]);
+    plt.title('Trace for $theta_{%d}$' % j)
 
-#from statsmodels.tsa import stattools
-#from statsmodels.tsa.stattools import acf, pacf
-#from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
 # Calculate ACF and PACF upto 50 lags
 # acf_50 = acf(df.value, nlags=50)
 # pacf_50 = pacf(df.value, nlags=50)
-
-# Draw Plot
-fig, axes = plt.subplots(1,2,figsize=(16,3), dpi= 100)
-plot_acf(df.value.tolist(), lags=50, ax=axes[0])
-plot_pacf(df.value.tolist(), lags=50, ax=axes[1])
+for j in range(p_draws.shape[1]):
+    # Draw Plot
+    fig, axes = plt.subplots(1,2,figsize=(16,3), dpi= 100)
+    plot_acf(p_draws[100:, j].tolist(), lags=100, ax=axes[0])
+    #plot_pacf(p_draws[100:, j].tolist(), lags=100, ax=axes[1])
 
 
 
