@@ -6,6 +6,7 @@ from numpy.random import beta, binomial, dirichlet, uniform, gamma, seed, multin
 from imp import reload
 import matplotlib.pyplot as plt
 from copy import deepcopy
+import seaborn as sns
 from statsmodels.tsa.stattools import acf, pacf
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
@@ -21,7 +22,7 @@ N = 10000
 K = 3           # number of mixture components
 D = 50           # dimensions / number of features     
 
-alphas = gamma(shape=1, size=K)               # shape parameter
+alphas = gamma(shape=5, size=K)               # shape parameter
 p_true = dirichlet(alpha = alphas, size = 1)[0]
 p_true
 theta_true = beta(a = .7, b = .9, size = K*D).reshape(D,K)
@@ -44,7 +45,7 @@ Z.shape
 #K = 10           # number of mixture components
 D = X.shape[1]
 
-alphas = gamma(shape=1, size=K)               # shape parameters
+alphas = gamma(shape=2, size=K)               # shape parameters
 p_0 = dirichlet(alpha = alphas, size = 1)[0]
 #p_0 = np.array([1/K]*K)  
 theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
@@ -52,7 +53,7 @@ theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
 #----------
 # Run EM:    
 #----------
-logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 300, stopcrit = 10**(-3))
+logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 500, stopcrit = 10**(-3))
 
 
 #----------------
@@ -72,6 +73,76 @@ p_true
 
 theta_em
 theta_true
+
+##################
+# Gibbs sampler
+##################
+
+MC = 2000        # Monte Carlo runs
+burn_in = 500    # discard those draws for burn-in
+
+K = 3
+N, D = X.shape[0], X.shape[1]
+
+p_draws = np.empty((MC,K))
+theta_draws = np.empty((MC,X.shape[1],K))
+
+alphas = gamma(shape=1, size=K)               # shape parameters
+p_0 = dirichlet(alpha = alphas, size = 1)[0]
+#p_0 = np.array([1/K]*K)
+theta_0 = beta(a = 1.3, b = 1.7, size = K*D).reshape(D,K)
+p_draws[0,:], theta_draws[0,:,:] = p_0, theta_0 
+
+gammas, deltas = gamma(shape=1.5, size=K), rand(K)     # uniform random draws   
+
+# Sample from full cond.
+#----------------------------
+for i in range(1,MC):   
+    if i%500 == 0:   
+        print("Iter.",i)
+        
+    p_draws[i,:], theta_draws[i,:,:] = bmm.gibbs_pass(p_draws[i-1,:], 
+                                                      theta_draws[i-1,:,:], X, 
+                                                      alphas = alphas, 
+                                                      hyper_para = {'gammas': gammas, 'deltas': deltas})
+print("Finished!")
+#------------------------------
+
+p_draws.shape
+theta_draws.shape
+
+# Bayes estimates:
+#---------------------
+theta_bayes = np.mean(theta_draws[burn_in:,:, :],axis=0)
+theta_bayes#.shape
+theta_true
+
+p_bayes = np.mean(p_draws[burn_in:,],axis=0)
+p_bayes
+p_true
+
+
+plt.figure(figsize=(10, 20))
+for j in range(p_draws.shape[1]):
+    plt.subplot(5,2,j+1)
+    plt.plot(p_draws[burn_in:, j]);
+    plt.title('Trace for $p_{%d}$' % j)
+
+plt.figure(figsize=(10, 20))
+for j in range(theta_draws.shape[1]):
+    plt.subplot(25,2,j+1)
+    plt.plot(theta_draws[100:,j, 0]);
+    plt.title('Trace for $theta_{%d}$' % j)
+
+
+# Calculate ACF and PACF upto 50 lags
+# acf_50 = acf(df.value, nlags=50)
+# pacf_50 = pacf(df.value, nlags=50)
+for j in range(p_draws.shape[1]):
+    # Draw Plot
+    fig, axes = plt.subplots(1,2,figsize=(16,3), dpi= 100)
+    plot_acf(p_draws[burn_in:, j].tolist(), lags=100, ax=axes[0])
+    #plot_pacf(p_draws[100:, j].tolist(), lags=100, ax=axes[1])
 
 
 #################### REAL DATA ############################
@@ -114,9 +185,7 @@ print("Plotting an extract of the 10 clusters, overall purity: %f" % purity)
 
 bmm.plot_clusters(predict, labels, stats, data)
 
-
-
-
+# MNIST
 ############################################################
 
 image_size = 28                  # width and length

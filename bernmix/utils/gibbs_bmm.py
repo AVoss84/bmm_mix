@@ -242,7 +242,7 @@ p_draws[0,:], theta_draws[0,:,:] = p_0, theta_0
 gammas, deltas = gamma(shape=1.5, size=K), rand(K)     # uniform random draws   
 hyper_para = {'gammas': gammas, 'deltas': deltas}
 
-i=47
+i=1
 
 for i in range(1,MC):   
     
@@ -261,14 +261,24 @@ for i in range(1,MC):
     log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
     
     log_S = np.nan_to_num(log_S)
-    log_S
-    s_n = np.sum(exp(log_S),axis=1)
+    log_S 
+        
+    b = np.max(log_S)
+    #b = 0.
+    
+    s_n = np.sum(exp(log_S - b),axis=1)
+   
+    #np.place(s_n, s_n == 0., 10**(-8))
+    
     denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)
-    S_n = np.multiply(exp(log_S),denom)
+    
+    S_n = np.multiply(exp(log_S - b),denom)
+    S_n
             
-    _, Z_star = bmm.discrete_sample(S_n)  # draw from categorical p.m.f
+    cat_lev, Z_star = bmm.discrete_sample(S_n)  # draw from categorical p.m.f
     Z_star    
-
+    cat_lev
+    
     v = np.matmul(Z_star.T, X)
     u = np.sum(Z_star,axis=0)
     us = np.repeat(u, [D], axis=0).reshape(K,D)
@@ -284,8 +294,8 @@ for i in range(1,MC):
 
 from pdb import set_trace
 
-MC = 4000
-N, D, K = X.shape[0], X.shape[1], 3
+MC = 2000
+N, D, K = X.shape[0], X.shape[1], 10
 
 p_draws = np.empty((MC,K))
 theta_draws = np.empty((MC,X.shape[1],K))
