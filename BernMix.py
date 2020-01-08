@@ -20,7 +20,7 @@ reload(bmm)
 
 #seed(12)
 
-N = 10**5
+N = 10**4
 K = 3           # number of mixture components
 D = 50           # dimensions / number of features     
 
@@ -37,7 +37,7 @@ theta_true = beta(a = .7, b = .9, size = K*D).reshape(D,K)
 #rbern = (np.random.uniform(size=D) < mu_k[:,Z[2]]) * 1
 X, Z = bmm.sample_bmm(N, p_true, theta_true)
 
-latent_true = np.argmax(Z,1)              
+latent_true = np.argmax(Z,1)          # true cluster assignements    
 
 X.shape
 Z.shape
@@ -71,9 +71,9 @@ plt.xlabel('iterations')
 plt.ylabel('loglikelihood')
 plt.show()
 
-# Compare:
-p_em
-p_true
+# Compare with ground truth:
+print(p_em)
+print(p_true)
 
 theta_em
 theta_true
@@ -81,6 +81,8 @@ theta_true
 ##################
 # Gibbs sampler
 ##################
+
+seed(12)
 
 MC = 2000        # Monte Carlo runs
 burn_in = 500    # discard those draws for burn-in
@@ -96,6 +98,7 @@ alphas = gamma(shape=1, size=K)               # shape parameters
 p_0 = dirichlet(alpha = alphas, size = 1)[0]
 #p_0 = np.array([1/K]*K)
 theta_0 = beta(a = 1.3, b = 1.7, size = K*D).reshape(D,K)
+
 p_draws[0,:], theta_draws[0,:,:] = p_0, theta_0 
 
 gammas, deltas = gamma(shape=1.5, size=K), rand(K)     # uniform random draws   
@@ -125,8 +128,9 @@ theta_bayes#.shape
 theta_true
 
 p_bayes = np.mean(p_draws[burn_in:,],axis=0)
-p_bayes
-p_true
+
+print(p_bayes)
+print(p_true)
 
 latent_bayes = np.around(np.mean(latent_draws[burn_in:,:],axis=0))
 latent_bayes.shape
@@ -134,7 +138,7 @@ latent_bayes.shape
 # Compute performance metrics - 
 # compare MAP estimates of cluster assignements with ground truth labels:
 #-----------------------------------------------------------------------------
-# Note: label switching issue!!
+# Note: label switching issue when checking for simple accuracy!!
 
 print(accuracy_score(latent_true, latent_bayes))    
 

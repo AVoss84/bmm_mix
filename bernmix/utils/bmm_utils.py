@@ -81,9 +81,40 @@ def E_step_basic(X, theta, p, jitter=10**(-5)):
        #Z_star[n,:] = S_n]/sum(S[n,:])     # step 4; posterior of mixture assignments
 
     return sum(LL), Z_star
+
+
+
+#------------------------------------------------------------------------------------------------------
+
+def E_step(X, theta, p):
+    
+    """Expectation step: see steps 3-4 of Algorithm 1"""
+    
+    N = X.shape[0]; K = len(p)
+    theta = theta.T                # Transpose for easier comparability with derivations
+    
+    # Vectorized version
+    #--------------------------    
+    log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
+    log_S = np.nan_to_num(log_S)
+    
+    b = np.max(log_S)    # exp-normalize-trick
+    s_n = np.sum(exp(log_S - b),axis=1)    
+    denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)    
+    Z_star = np.multiply(exp(log_S - b),denom)
+
+    #s_n = np.sum(exp(log_S),axis=1)    
+    #denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)    
+    #Z_star = np.multiply(exp(log_S),denom)
+    #LL = log(s_n).reshape(N,1)
+    
+    LL = b + log(s_n).reshape(N,1)
+    return sum(LL), Z_star
+
 #------------------------------------------------------------------------------
     
-def E_step(X, theta, p):
+# without exp-normalize trick...
+def E_step_old(X, theta, p):
     
     """Expectation step: see steps 3-4 of Algorithm 1"""
     
@@ -325,8 +356,8 @@ def gibbs_pass(p_old, thetas_old, X, alphas = np.array([.1,.3,.6]),
     log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
     log_S = np.nan_to_num(log_S)
     
-    #b = np.max(log_S)    # exp-normalize-trick
-    b = 0.
+    b = np.max(log_S)    # exp-normalize-trick
+    #b = 0.
     s_n = np.sum(exp(log_S - b),axis=1)    
     denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)    
     S_n = np.multiply(exp(log_S - b),denom)
