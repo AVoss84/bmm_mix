@@ -1,6 +1,6 @@
 # Bernoulli Mixture Models (BMM)
 
-One Paragraph of project description goes here...
+[Gibbs sampler](https://github.com/AVoss84/bmm_mix/blob/master/EM_for_BMM.ipynb)
 
 ## Getting Started
 
