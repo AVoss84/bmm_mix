@@ -131,10 +131,18 @@ p_true
 latent_bayes = np.around(np.mean(latent_draws[burn_in:,:],axis=0))
 latent_bayes.shape
 
-accuracy_score(latent_true, latent_bayes)
+# Compute performance metrics - 
+# compare MAP estimates of cluster assignements with ground truth labels:
+#-----------------------------------------------------------------------------
+# Note: label switching issue!!
+
+print(accuracy_score(latent_true, latent_bayes))    
+
 confusion_matrix(latent_true, latent_bayes)
 
 
+# Plot MCMC results:
+#---------------------------------
 plt.figure(figsize=(10, 20))
 for j in range(p_draws.shape[1]):
     plt.subplot(5,2,j+1)
