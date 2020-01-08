@@ -8,7 +8,7 @@ Shows how to fit the model using [Expectation-Maximizition (EM)](https://github.
 
 ## Bayesian estimation 
 
-Shows how to fit the model using [Gibbs sampling](https://github.com/AVoss84/bmm_mix/blob/master/EM_for_BMM.ipynb) algorithm.
+Shows how to fit the model using [Gibbs sampling](https://github.com/AVoss84/bmm_mix/blob/master/Gibbs_for_BMM.ipynb) algorithm.
 
 ```
 Give examples
