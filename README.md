@@ -1,14 +1,14 @@
 # Bernoulli Mixture Models (BMM)
 
-[Gibbs sampler](https://github.com/AVoss84/bmm_mix/blob/master/EM_for_BMM.ipynb)
+This repository provides tools in a Python package *bmm_mix* for the statistical analysis of multivariate Bernoulli data using BMMs. 
 
-## Getting Started
+## Maximum likelihood estimation 
 
-These instructions will get you a copy of the project up and running on your local machine for development and testing purposes. See deployment for notes on how to deploy the project on a live system.
+Shows how to fit the model using [Expectation-Maximizition (EM)](https://github.com/AVoss84/bmm_mix/blob/master/EM_for_BMM.ipynb) algorithm as outlined in Bishop. 
 
-### Prerequisites
+## Bayesian estimation 
 
-What things you need to install the software and how to install them
+Shows how to fit the model using [Gibbs sampling](https://github.com/AVoss84/bmm_mix/blob/master/EM_for_BMM.ipynb) algorithm.
 
 ```
 Give examples
