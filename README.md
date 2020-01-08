@@ -1,6 +1,6 @@
-# **Bernoulli Mixture Models (BMM)**
+# *Bernoulli Mixture Models (BMM)*
 
-This repository provides tools in a Python package *bmm_mix* for the statistical analysis of multivariate Bernoulli data using BMMs. 
+This repository provides tools in a Python package *bernmix* for the statistical analysis of multivariate Bernoulli data using BMMs. 
 
 ## Maximum likelihood estimation 
 
@@ -11,7 +11,7 @@ Shows how to fit the model using [Expectation-Maximizition (EM)](https://github.
 Shows how to fit the model using [Gibbs sampling](https://github.com/AVoss84/bmm_mix/blob/master/Gibbs_for_BMM.ipynb) algorithm.
 
 ```
-Give examples
+from bernmix.utils import bmm_utils as bmm
 ```
 
 ### Installing
