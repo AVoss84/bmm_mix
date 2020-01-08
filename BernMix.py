@@ -7,6 +7,8 @@ from imp import reload
 import matplotlib.pyplot as plt
 from copy import deepcopy
 import seaborn as sns
+
+from sklearn.metrics import confusion_matrix, accuracy_score
 from statsmodels.tsa.stattools import acf, pacf
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
@@ -18,7 +20,7 @@ reload(bmm)
 
 #seed(12)
 
-N = 10000
+N = 10**5
 K = 3           # number of mixture components
 D = 50           # dimensions / number of features     
 
@@ -34,6 +36,8 @@ theta_true = beta(a = .7, b = .9, size = K*D).reshape(D,K)
 #probs = np.random.uniform(size=10000)
 #rbern = (np.random.uniform(size=D) < mu_k[:,Z[2]]) * 1
 X, Z = bmm.sample_bmm(N, p_true, theta_true)
+
+latent_true = np.argmax(Z,1)              
 
 X.shape
 Z.shape
@@ -84,8 +88,9 @@ burn_in = 500    # discard those draws for burn-in
 K = 3
 N, D = X.shape[0], X.shape[1]
 
-p_draws = np.empty((MC,K))
-theta_draws = np.empty((MC,X.shape[1],K))
+p_draws = np.empty((MC,K))                                  # mixture weights draws
+theta_draws = np.empty((MC,X.shape[1],K))                   # theta success rates 
+latent_draws = np.empty((MC,N))                             # latent variable draws, Z
 
 alphas = gamma(shape=1, size=K)               # shape parameters
 p_0 = dirichlet(alpha = alphas, size = 1)[0]
@@ -101,13 +106,14 @@ for i in range(1,MC):
     if i%500 == 0:   
         print("Iter.",i)
         
-    p_draws[i,:], theta_draws[i,:,:] = bmm.gibbs_pass(p_draws[i-1,:], 
+    latent_draws[i,:], p_draws[i,:], theta_draws[i,:,:] = bmm.gibbs_pass(p_draws[i-1,:], 
                                                       theta_draws[i-1,:,:], X, 
                                                       alphas = alphas, 
                                                       hyper_para = {'gammas': gammas, 'deltas': deltas})
 print("Finished!")
 #------------------------------
 
+latent_draws.shape
 p_draws.shape
 theta_draws.shape
 
@@ -120,6 +126,12 @@ theta_true
 p_bayes = np.mean(p_draws[burn_in:,],axis=0)
 p_bayes
 p_true
+
+latent_bayes = np.around(np.mean(latent_draws[burn_in:,:],axis=0))
+latent_bayes.shape
+
+accuracy_score(latent_true, latent_bayes)
+confusion_matrix(latent_true, latent_bayes)
 
 
 plt.figure(figsize=(10, 20))
@@ -136,13 +148,18 @@ for j in range(theta_draws.shape[1]):
 
 
 # Calculate ACF and PACF upto 50 lags
-# acf_50 = acf(df.value, nlags=50)
-# pacf_50 = pacf(df.value, nlags=50)
+#acf_50 = acf(df.value, nlags=50)
+#pacf_50 = pacf(df.value, nlags=50)
+
+plt.figure(figsize=(10, 20))
 for j in range(p_draws.shape[1]):
-    # Draw Plot
     fig, axes = plt.subplots(1,2,figsize=(16,3), dpi= 100)
-    plot_acf(p_draws[burn_in:, j].tolist(), lags=100, ax=axes[0])
-    #plot_pacf(p_draws[100:, j].tolist(), lags=100, ax=axes[1])
+    plot_acf(p_draws[burn_in:, j], lags=100, ax=axes[0])
+    plt.xlabel("Lags"); 
+    plt.title('ACF for $p_{%d}$' % j)
+    plot_pacf(p_draws[burn_in:, j], lags=100, ax=axes[1])
+    #plt.xlabel("Lags"); #plt.ylabel("PACF")
+    plt.title('PACF for $p_{%d}$' % j)
 
 
 #################### REAL DATA ############################
@@ -185,6 +202,7 @@ print("Plotting an extract of the 10 clusters, overall purity: %f" % purity)
 
 bmm.plot_clusters(predict, labels, stats, data)
 
+############################################################
 # MNIST
 ############################################################
 

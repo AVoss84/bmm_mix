@@ -233,6 +233,8 @@ N, D, K = X.shape[0], X.shape[1], 3
 p_draws = np.empty((MC,K))
 theta_draws = np.empty((MC,X.shape[1],K))
 
+labels_draws = np.empty((MC,N))
+
 alphas = gamma(shape=1, size=K)               # shape parameters
 p_0 = dirichlet(alpha = alphas, size = 1)[0]
 #p_0 = np.array([1/K]*K)  # K>2
@@ -278,6 +280,7 @@ for i in range(1,MC):
     cat_lev, Z_star = bmm.discrete_sample(S_n)  # draw from categorical p.m.f
     Z_star    
     cat_lev
+    labels_draws[i,:] = cat_lev
     
     v = np.matmul(Z_star.T, X)
     u = np.sum(Z_star,axis=0)

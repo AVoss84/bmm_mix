@@ -306,6 +306,8 @@ def discrete_sample(alphas):
     return categ_level, onehot
 
 
+# Gibbs sampler:
+#---------------------------    
 def gibbs_pass(p_old, thetas_old, X, alphas = np.array([.1,.3,.6]),
                hyper_para = {'gammas': np.array([.1,.3,.6]), 'deltas': np.array([1,3,6])}
                ):
@@ -339,5 +341,5 @@ def gibbs_pass(p_old, thetas_old, X, alphas = np.array([.1,.3,.6]),
     
     thetas_new = beta(a = gammas + v, b = deltas + us - v, size = v.shape)
     
-    return p_new, thetas_new.T
+    return cat_lev, p_new, thetas_new.T
 
