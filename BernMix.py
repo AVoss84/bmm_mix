@@ -100,7 +100,8 @@ p_draws[0,:], theta_draws[0,:,:] = p_0, theta_0
 
 gammas, deltas = gamma(shape=1.5, size=K), rand(K)     # uniform random draws   
 
-# Sample from full cond.
+#----------------------------
+# Sample from full cond.:
 #----------------------------
 for i in range(1,MC):   
     if i%500 == 0:   
@@ -111,7 +112,7 @@ for i in range(1,MC):
                                                       alphas = alphas, 
                                                       hyper_para = {'gammas': gammas, 'deltas': deltas})
 print("Finished!")
-#------------------------------
+#-----------------------------------------------------------------------------------------------------------
 
 latent_draws.shape
 p_draws.shape
