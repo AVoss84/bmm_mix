@@ -1,12 +1,12 @@
 # *Bernoulli Mixture Models (BMM)*
 
-This repository provides tools in a Python package *bernmix* for the statistical analysis of multivariate Bernoulli data using BMMs. 
+This repository provides tools in a Python package *bernmix* for the unsupervised analysis of multivariate Bernoulli data with known number of cluster/groups using BMMs. 
 
 ## Maximum likelihood estimation 
 
 Shows how to fit the model using [Expectation-Maximizition (EM)](https://github.com/AVoss84/bmm_mix/blob/master/EM_for_BMM.ipynb) algorithm as outlined in *Bishop (2006): Pattern Recognition and Machine Learning*. 
 
-## Bayesian estimation 
+## Fully Bayesian estimation 
 
 Shows how to fit the model using [Gibbs sampling](https://github.com/AVoss84/bmm_mix/blob/master/Gibbs_for_BMM.ipynb) algorithm.
 
