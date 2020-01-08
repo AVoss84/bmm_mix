@@ -1,4 +1,4 @@
-# Bernoulli Mixture Models (BMM)
+# **Bernoulli Mixture Models (BMM)**
 
 This repository provides tools in a Python package *bmm_mix* for the statistical analysis of multivariate Bernoulli data using BMMs. 
 
