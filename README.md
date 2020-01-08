@@ -4,7 +4,7 @@ This repository provides tools in a Python package *bmm_mix* for the statistical
 
 ## Maximum likelihood estimation 
 
-Shows how to fit the model using [Expectation-Maximizition (EM)](https://github.com/AVoss84/bmm_mix/blob/master/EM_for_BMM.ipynb) algorithm as outlined in Bishop. 
+Shows how to fit the model using [Expectation-Maximizition (EM)](https://github.com/AVoss84/bmm_mix/blob/master/EM_for_BMM.ipynb) algorithm as outlined in *Bishop (2006): Pattern Recognition and Machine Learning*. 
 
 ## Bayesian estimation 
 
