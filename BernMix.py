@@ -21,7 +21,7 @@ reload(bmm)
 #seed(12)
 
 N = 10**4
-K = 3           # number of mixture components
+K = 5           # number of mixture components
 D = 50           # dimensions / number of features     
 
 alphas = gamma(shape=5, size=K)               # shape parameter
@@ -49,7 +49,7 @@ Z.shape
 #K = 10           # number of mixture components
 D = X.shape[1]
 
-alphas = gamma(shape=2, size=K)               # shape parameters
+alphas = gamma(shape=2, size=K)               # Dirichlet hyperparameters -> concentration param.
 p_0 = dirichlet(alpha = alphas, size = 1)[0]
 #p_0 = np.array([1/K]*K)  
 theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
@@ -87,14 +87,14 @@ seed(12)
 MC = 2000        # Monte Carlo runs
 burn_in = 500    # discard those draws for burn-in
 
-K = 3
+#K = 3
 N, D = X.shape[0], X.shape[1]
 
 p_draws = np.empty((MC,K))                                  # mixture weights draws
 theta_draws = np.empty((MC,X.shape[1],K))                   # theta success rates 
 latent_draws = np.empty((MC,N))                             # latent variable draws, Z
 
-alphas = gamma(shape=1, size=K)               # shape parameters
+alphas = gamma(shape=2, size=K)               # shape parameters
 p_0 = dirichlet(alpha = alphas, size = 1)[0]
 #p_0 = np.array([1/K]*K)
 theta_0 = beta(a = 1.3, b = 1.7, size = K*D).reshape(D,K)

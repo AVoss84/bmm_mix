@@ -312,7 +312,8 @@ def clusters_purity(clusters_stats):
     n = clusters_stats[:,1].sum()
     return majority_sum / n
 
-
+#-----------------------------------------------------------------------------
+    
 def dirichlet_sample(alphas):
     """
     Generate samples from an array of alpha distributions.
@@ -336,12 +337,13 @@ def discrete_sample(alphas):
     onehot = np.equal(seq_array, cat_array)*1.
     return categ_level, onehot
 
-
-# Gibbs sampler:
-#---------------------------    
+#----------------------------------------   
+# Single Gibbs draw for all unknowns:
+#----------------------------------------    
 def gibbs_pass(p_old, thetas_old, X, alphas = np.array([.1,.3,.6]),
                hyper_para = {'gammas': np.array([.1,.3,.6]), 'deltas': np.array([1,3,6])}
                ):
+    """Single Gibbs iteration for all unknowns variables, i.e. latents and model parameters"""
     
     p = deepcopy(p_old)
     theta = deepcopy(thetas_old)     

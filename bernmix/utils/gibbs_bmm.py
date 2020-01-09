@@ -63,11 +63,22 @@ LL = log(s_n).reshape(N,1)
 # Vectorized: correct!
 #--------------------------
 log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
+log_S
 
 m = np.amax(log_S) 
+m
+
+exp(log_S-m)
+
+
 s_n = np.sum(exp(log_S-m),axis=1)
+s_n
+
 denom = np.repeat(1/s_n, [K], axis=0).reshape(N,K)
-Z_star = np.multiply(exp(log_S),denom)
+
+Z_star = np.multiply(exp(log_S-m),denom)
+Z_star
+
 LL_ = m + log(s_n).reshape(N,1)
 
 LL_[:6]
@@ -356,6 +367,70 @@ for j in range(p_draws.shape[1]):
     plot_acf(p_draws[100:, j].tolist(), lags=100, ax=axes[0])
     #plot_pacf(p_draws[100:, j].tolist(), lags=100, ax=axes[1])
 
+######################################################################
+# Collapsed
+
+p = p_0
+N = X.shape[0]; K = len(p)
+theta = theta_0.T                # Transpose for easier comparability with derivations
+S, Z_star, LL = np.empty((N,K)), np.empty((N,K)), np.empty((N,1))
+
+X.shape
+theta.shape
+S.shape
+
+K
+n = 1
+k = 1
+
+alphas = gamma(shape=1, size=K)               # shape parameters
+alphas
+
+alpha = sum(alphas)
+
+Z.shape
+
+# Initialize:
+Zs = np.zeros(Z.shape)    
+Zs[:,3] = 1       # all in single cluster
+Zs
+
+Zs[n,:] = 0  # remove x_i's statistics / assignement from component z_i
+
+Ns = np.sum(Zs, axis=0)
+Ns
+
+num = (Ns - 1 + alpha/K)
+z_prior = np.around(abs(num*(num >= 0))/(N - 1 + alpha))    # eqn (25)
+z_prior
+
+b0 = 1.2
+b1 = .7
+
+Zs = Z
+Zs
+
+# Get cluster assignements
+ass = Zs.argmax(axis=1)
+ass
+
+k = 1
+# Only observations in cluster k:
+X_k = X[ass == k,:]
+X_k.shape
+
+Z[ass == k,:]
+
+index = np.arange(0,X.shape[0])    
+mask = np.ones(index.shape,dtype=bool)
+mask[i] = False
+X[index[mask],:]
 
 
-    
+def _filter(i, k ,X, Z):
+    """Filter X w.r.t. row i"""
+    index = np.arange(0,X.shape[0])    
+    mask = np.ones(index.shape,dtype=bool)
+    mask[i] = False
+    X[index[mask],:]
+
