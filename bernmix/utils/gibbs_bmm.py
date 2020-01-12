@@ -389,48 +389,62 @@ alphas
 alpha = sum(alphas)
 
 Z.shape
+Zs = Z
+Zs
 
 # Initialize:
 Zs = np.zeros(Z.shape)    
 Zs[:,3] = 1       # all in single cluster
 Zs
 
-Zs[n,:] = 0  # remove x_i's statistics / assignement from component z_i
+N_k = np.sum(Zs, axis=0)   # N_k's (x_i included!)
+N_k
 
-Ns = np.sum(Zs, axis=0)
-Ns
+Zs[n,:] = 0     # remove x_i's statistics / assignement from component z_i
 
-num = (Ns - 1 + alpha/K)
-z_prior = np.around(abs(num*(num >= 0))/(N - 1 + alpha))    # eqn (25)
+num = N_k - 1 + alpha/K    # minus x_i
+z_prior = np.around(abs(num*(num >= 0))/(N - 1 + alpha),4)    # eqn (25)
 z_prior
 
 b0 = 1.2
 b1 = .7
 
-Zs = Z
-Zs
+index = np.arange(0,Zs.shape[0])    
+mask = np.ones(index.shape,dtype=bool)
+mask[n] = False
 
-# Get cluster assignements
-ass = Zs.argmax(axis=1)
-ass
+Zs[index[mask],:]     # without x_i
+
+# Get cluster assignements without z_i:
+ass_woi = Zs[index[mask],:].argmax(axis=1)
+ass_woi.shape
 
 k = 1
+
 # Only observations in cluster k:
-X_k = X[ass == k,:]
-X_k.shape
+X_woi = X[index[mask],:]
+X_k_woi = X_woi[ass_woi == k,:]
+X_k_woi.shape
 
-Z[ass == k,:]
+X_k_woi
 
-index = np.arange(0,X.shape[0])    
-mask = np.ones(index.shape,dtype=bool)
-mask[i] = False
-X[index[mask],:]
+X_k_woi = filterX(n, k, X, Z)
 
 
-def _filter(i, k ,X, Z):
-    """Filter X w.r.t. row i"""
-    index = np.arange(0,X.shape[0])    
+def filterX(i, k ,X, Z):
+    """Filter X, Z w.r.t. row i"""
+    index = np.arange(0,Zs.shape[0])    
     mask = np.ones(index.shape,dtype=bool)
-    mask[i] = False
-    X[index[mask],:]
+    mask[i] = False    
+    # Get cluster assignements without z_i:
+    ass_woi = Zs[index[mask],:].argmax(axis=1)    
+    # Only observations in cluster k:
+    X_woi = X[index[mask],:]
+    X_k_woi = X_woi[ass_woi == k,:]
+    return X_k_woi 
+
+
+
+
+
 
