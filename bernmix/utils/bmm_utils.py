@@ -89,10 +89,8 @@ def E_step_basic(X, theta, p, jitter=10**(-5)):
 
 #------------------------------------------------------------------------------------------------------
 
-def E_step(X, theta, p):
-    
-    """Expectation step: see steps 3-4 of Algorithm 1"""
-    
+def E_step(X, theta, p):    
+    """Expectation step: see steps 3-4 of Algorithm 1"""  
     N = X.shape[0]; K = len(p)
     theta = theta.T                # Transpose for easier comparability with derivations
     
@@ -265,7 +263,7 @@ def mixture_EM(X, p_0, theta_0, n_iter=100, stopcrit=10**(-5), verbose = True):
         else:
           p_current, theta_current = p_update, theta_update  
         i += 1
-    return ll, p_update, theta_update
+    return ll, p_update, theta_update, Z_star_new.argmax(axis=1)     # use argmax of last iteration of Zstar's as assignements estimates
 #------------------------------------------------------------------
 
 

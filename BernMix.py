@@ -20,11 +20,12 @@ reload(bmm)
 
 #seed(12)
 
-N = 10**4
-K = 5           # number of mixture components
+N = 10**5
+K = 3           # number of mixture components
 D = 50           # dimensions / number of features     
 
 alphas = gamma(shape=5, size=K)               # shape parameter
+print(sum(alphas))                              # equivalent sample size
 p_true = dirichlet(alpha = alphas, size = 1)[0]
 p_true
 theta_true = beta(a = .7, b = .9, size = K*D).reshape(D,K)
@@ -50,6 +51,7 @@ Z.shape
 D = X.shape[1]
 
 alphas = gamma(shape=2, size=K)               # Dirichlet hyperparameters -> concentration param.
+print(sum(alphas))
 p_0 = dirichlet(alpha = alphas, size = 1)[0]
 #p_0 = np.array([1/K]*K)  
 theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
@@ -57,7 +59,7 @@ theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
 #----------
 # Run EM:    
 #----------
-logli, p_em, theta_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 500, stopcrit = 10**(-3))
+logli, p_em, theta_em, latent_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 500, stopcrit = 10**(-3))
 
 
 #----------------
@@ -72,11 +74,15 @@ plt.ylabel('loglikelihood')
 plt.show()
 
 # Compare with ground truth:
+#---------------------------
 print(p_em)
 print(p_true)
 
 theta_em
 theta_true
+
+confusion_matrix(latent_true, latent_em)
+
 
 ##################
 # Gibbs sampler
