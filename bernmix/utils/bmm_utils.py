@@ -6,6 +6,9 @@ from copy import deepcopy
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+#from mpl_toolkits.mplot3d import Axes3D
+from scipy.stats import wishart, multivariate_normal, bernoulli, multinomial
+#import os
 
 #from scipy.stats import multinomial
 
@@ -325,6 +328,8 @@ def dirichlet_sample(alphas):
 def discrete_sample(alphas):
     """
     Draw from categorical distr. using the Gumbel-max-trick.
+    
+    https://casmls.github.io/general/2017/02/01/GumbelSoftmax.html
     """
     N,K = alphas.shape
     #uniform = np.random.rand(len(alpha))     # uniform random draws
