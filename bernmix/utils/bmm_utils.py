@@ -53,8 +53,7 @@ def E_step_basic(X, theta, p, jitter=10**(-5)):
        for k in range(K):
            
             log_s_nk = log(p[k]) + sum(X[n,:]*log(theta[k,:]) + (1-X[n,:])*log(1-theta[k,:]))
-            #s_nk = p[k]*prod(( theta[k,:]**(X[n,:]) ) * ( (1 - (theta[k,:]) )**(1-X[n,:]) ))
-            
+            #s_nk = p[k]*prod(( theta[k,:]**(X[n,:]) ) * ( (1 - (theta[k,:]) )**(1-X[n,:]) ))          
             #s_nk = exp(log(p[k]+noise) + sum(X[n,:]*log(theta[k,:]+noise) + (1-X[n,:])*log(1 - (theta[k,:]+noise) )))  # step 3
             #S[n,k] = s_nk
             S[n,k] = exp(log_s_nk)     # y_nk
@@ -82,7 +81,6 @@ def E_step_basic(X, theta, p, jitter=10**(-5)):
        #s_n = exp(S[n,:]-m)
        
        #Z_star[n,:] = S_n]/sum(S[n,:])     # step 4; posterior of mixture assignments
-
     return sum(LL), Z_star
 
 
