@@ -4,7 +4,9 @@ from numpy import log, sum, exp, prod
 from numpy.random import beta, binomial, dirichlet, multinomial, uniform, gamma, seed, standard_gamma, gumbel
 from copy import deepcopy
 import pandas as pd
+from tqdm.auto import tqdm
 import matplotlib.pyplot as plt
+
 #from mpl_toolkits.mplot3d import Axes3D
 #from scipy.stats import wishart, multivariate_normal, bernoulli, multinomial
 #import os
@@ -26,7 +28,7 @@ def sample_bmm(N, p, theta):
     print("Number of random draws:", N)
     # Draw X_i| Z:  
     X = np.empty((N,d))
-    for i in range(N):
+    for i in tqdm(range(N)):
         select_comp = np.where(Z[i,:])[0][0]         # select mixture comp.
         X[i,:] = binomial(n=1, p = theta[:,select_comp])  # Select success prob. of each d=1..D dimension in mix. comp. k. Draw from d-variate Bernoulli draw
     return X, Z

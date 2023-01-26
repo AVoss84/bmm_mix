@@ -7,7 +7,6 @@ import matplotlib.pyplot as plt
 from copy import deepcopy
 from tqdm.auto import tqdm
 #import seaborn as sns
-
 from sklearn.metrics import confusion_matrix, accuracy_score
 from statsmodels.tsa.stattools import acf, pacf
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
@@ -55,6 +54,7 @@ D = X.shape[1]
 
 alphas = gamma(shape=2, size=K)               # Dirichlet hyperparameters -> concentration param.
 print(sum(alphas))
+
 p_0 = dirichlet(alpha = alphas, size = 1)[0]
 #p_0 = np.array([1/K]*K)  
 theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
@@ -63,7 +63,6 @@ theta_0 = beta(a = 1, b = 1, size = K*D).reshape(D,K)
 # Run EM:    
 #----------
 logli, p_em, theta_em, latent_em = bmm.mixture_EM(X = X, p_0 = p_0, theta_0 = theta_0, n_iter = 500, stopcrit = 10**(-3))
-
 
 #----------------
 # Plot loglike.:
@@ -90,7 +89,6 @@ confusion_matrix(latent_true, latent_em)
 ##################
 # Gibbs sampler
 ##################
-
 seed(12)
 
 MC = 2000        # Monte Carlo runs
@@ -116,7 +114,7 @@ gammas, deltas = gamma(shape=1.5, size=K), rand(K)     # uniform random draws
 # Sample from full cond.:
 #----------------------------
 for i in tqdm(range(1,MC)):           
-    
+
     latent_draws[i,:], p_draws[i,:], theta_draws[i,:,:] = bmm.gibbs_pass(p_draws[i-1,:], 
                                                       theta_draws[i-1,:,:], X, 
                                                       alphas = alphas, 
