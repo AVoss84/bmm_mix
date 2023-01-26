@@ -1,6 +1,6 @@
 # *Bernoulli Mixture Models (BMM)*
 
-This repository provides tools in a Python package *bernmix* for the unsupervised analysis of multivariate Bernoulli data with known number of cluster/groups using BMMs. 
+This repository provides tools in a Python package *bernmix* for the unsupervised analysis of multivariate Bernoulli data with known number of cluster/groups using BMMs. Python 3.8.*
 
 ## Maximum likelihood estimation 
 

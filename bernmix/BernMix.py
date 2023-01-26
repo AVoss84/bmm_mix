@@ -1,4 +1,3 @@
-
 import os, pickle
 import numpy as np
 from numpy import log, sum, exp, prod
@@ -6,16 +5,18 @@ from numpy.random import beta, binomial, dirichlet, uniform, gamma, seed, multin
 from imp import reload
 import matplotlib.pyplot as plt
 from copy import deepcopy
-import seaborn as sns
+from tqdm.auto import tqdm
+#import seaborn as sns
 
 from sklearn.metrics import confusion_matrix, accuracy_score
 from statsmodels.tsa.stattools import acf, pacf
 from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
 
-os.chdir("C:\\Users\\Alexander\\Documents\\\Github\\bmm_mix")
+#os.chdir("C:\\Users\\Alexander\\Documents\\\Github\\bmm_mix")
 
 from bernmix.utils import bmm_utils as bmm
 #os.getcwd()
+
 reload(bmm)
 
 #seed(12)
@@ -25,7 +26,9 @@ K = 3           # number of mixture components
 D = 50           # dimensions / number of features     
 
 alphas = gamma(shape=5, size=K)               # shape parameter
+
 print(sum(alphas))                              # equivalent sample size
+
 p_true = dirichlet(alpha = alphas, size = 1)[0]
 p_true
 theta_true = beta(a = .7, b = .9, size = K*D).reshape(D,K)
@@ -112,10 +115,8 @@ gammas, deltas = gamma(shape=1.5, size=K), rand(K)     # uniform random draws
 #----------------------------
 # Sample from full cond.:
 #----------------------------
-for i in range(1,MC):   
-    if i%500 == 0:   
-        print("Iter.",i)
-        
+for i in tqdm(range(1,MC)):           
+    
     latent_draws[i,:], p_draws[i,:], theta_draws[i,:,:] = bmm.gibbs_pass(p_draws[i-1,:], 
                                                       theta_draws[i-1,:,:], X, 
                                                       alphas = alphas, 

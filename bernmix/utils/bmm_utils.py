@@ -5,17 +5,10 @@ from numpy.random import beta, binomial, dirichlet, multinomial, uniform, gamma,
 from copy import deepcopy
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
 #from mpl_toolkits.mplot3d import Axes3D
-from scipy.stats import wishart, multivariate_normal, bernoulli, multinomial
+#from scipy.stats import wishart, multivariate_normal, bernoulli, multinomial
 #import os
-
 #from scipy.stats import multinomial
-
-#from IPython.display import display, clear_output
-#from __future__ import print_function
-#from ipywidgets import interact, interactive, fixed
-#import ipywidgets as widgets
 
 
 # Draw from D-variate Bernoulli mixture:
@@ -372,7 +365,6 @@ def gibbs_pass(p_old, thetas_old, X, alphas = np.array([.1,.3,.6]),
     us = np.repeat(u, [D], axis=0).reshape(K,D)
     
     p_new = dirichlet_sample(alphas + u)
-    
     thetas_new = beta(a = gammas + v, b = deltas + us - v, size = v.shape)
     
     return cat_lev, p_new, thetas_new.T
