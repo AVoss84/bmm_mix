@@ -89,7 +89,6 @@ class naiveBayes(BaseEstimator, ClassifierMixin):
             corpus = deepcopy(X) ; labels = deepcopy(y)
             if self.verbose : print('Creating (token, label) -> frequency mappings for documents in corpus...')        
             N = corpus.shape[0] ; self.vocab, tokenized_corpus = set(),[]
-            
             # Create vocab.:
             for i in corpus.tolist(): self.vocab.update(i)     # set will ignore existing tokens
             # Calculate class prior probab.    
@@ -103,7 +102,6 @@ class naiveBayes(BaseEstimator, ClassifierMixin):
                 #for word in tokens:
                 for word in sentence:
                     self.joint_distr.loc[str(word),str(y)] += 1
-
             class_prior_prob = self.N_c / N        
             class_cond_prob = self.joint_distr.values / self.N_c
             class_prior_prob = pd.Series(class_prior_prob + self.eps, index=[str(i) for i in class_vals])
@@ -113,7 +111,6 @@ class naiveBayes(BaseEstimator, ClassifierMixin):
             self.log_class_prior_prob = np.log(class_prior_prob)
             return class_prior_prob, class_cond_prob
 
-        
     def predict(self, X: np.array): 
             """
             Predict: Calculate posterior predictive distribution and calculate MAP estimate
