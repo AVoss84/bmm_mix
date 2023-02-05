@@ -33,12 +33,14 @@ y = np.array([2,6, 2, 2])
 
 nb = utils.make_nb_feat().fit(corpus,y)
 
+np.exp(nb.log_cond_distr_train.T)
 nb.joint_abs_freq_train.T
 nb.model.class_count_
 
 for i in dir(nb.model):
     print(i)
 
+#nb.model.get_params()
 
 #------------------------
 N = 10**5
