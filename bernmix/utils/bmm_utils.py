@@ -4,14 +4,13 @@ from numpy import log, sum, exp, prod
 from numpy.random import beta, binomial, dirichlet, multinomial, uniform, gamma, seed, standard_gamma, gumbel
 from copy import deepcopy
 import pandas as pd
-from tqdm.auto import tqdm
+#from tqdm.auto import tqdm
+from tqdm import tqdm
 import matplotlib.pyplot as plt
-
 #from mpl_toolkits.mplot3d import Axes3D
 #from scipy.stats import wishart, multivariate_normal, bernoulli, multinomial
 #import os
 #from scipy.stats import multinomial
-
 
 # Draw from D-variate Bernoulli mixture:
 #-----------------------------------------
@@ -37,24 +36,21 @@ def sample_bmm(N, p, theta):
 
 #---------------------------------------------------------------------------------
 def E_step_basic(X, theta, p, jitter=10**(-5)):
-    
-    """Expectation step: see steps 3-4 of Algorithm 1"""
-    
+    """
+    Expectation step: see steps 3-4 of Algorithm 1
+    """
     N = X.shape[0]; K = len(p)
     theta = theta.T                # Transpose for easier comparability with derivations
     S, Z_star, LL = np.empty((N,K)), np.empty((N,K)), np.empty((N,1))
     #noise = 0. #uniform(0,jitter,1)
     for n in range(N):
        for k in range(K):
-           
             log_s_nk = log(p[k]) + sum(X[n,:]*log(theta[k,:]) + (1-X[n,:])*log(1-theta[k,:]))
             #s_nk = p[k]*prod(( theta[k,:]**(X[n,:]) ) * ( (1 - (theta[k,:]) )**(1-X[n,:]) ))          
             #s_nk = exp(log(p[k]+noise) + sum(X[n,:]*log(theta[k,:]+noise) + (1-X[n,:])*log(1 - (theta[k,:]+noise) )))  # step 3
             #S[n,k] = s_nk
             S[n,k] = exp(log_s_nk)     # y_nk
-            #print(log_s_nk)
        
-       #print(y_nk) 
        Z_star[n,:] = S[n,:]/sum(S[n,:])     # step 4; posterior of mixture assignments
        LL[n,:] = log(sum(S[n,:]))
        
@@ -64,21 +60,15 @@ def E_step_basic(X, theta, p, jitter=10**(-5)):
        #   print("zero sum.")
        #Z_star[n,:] = S[n,:]/marg     # step 4; posterior of mixture assignments
        #LL[n,:] = log(marg)
-       
        #m = np.amax(S[n,:]) 
        #LL[n,:] = m + log(sum(exp(S[n,:]-m)))
-       
        #denom = exp(LL[n,:])
        #if denom == 0.:
        #     denom = 10**(-10)
-           
        #Z_star[n,:] = exp(S[n,:])/denom
        #s_n = exp(S[n,:]-m)
-       
        #Z_star[n,:] = S_n]/sum(S[n,:])     # step 4; posterior of mixture assignments
     return sum(LL), Z_star
-
-
 
 #------------------------------------------------------------------------------------------------------
 
@@ -89,7 +79,7 @@ def E_step(X, theta, p):
     
     # Vectorized version
     #--------------------------    
-    log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))  
+    log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T + 1e-10)) + np.matmul(1-X, log(1-theta.T))  
     log_S = np.nan_to_num(log_S)
     
     b = np.max(log_S)    # exp-normalize-trick
@@ -169,9 +159,7 @@ def M_step_basic(X, Z_star):
 #-------------------------------------------------------------------------
  
 def loglike(X, p, theta):
-    
     """(Incomplete) Loglikelihood of Bernoulli mixture model"""
-    
     N, K = X.shape[0], len(p)
     theta = theta.T       # Transpose for easier comparability with derivations
     log_S = np.repeat(log(p), [N], axis=0).reshape(K,N).T + np.matmul(X, log(theta.T)) + np.matmul(1-X, log(1-theta.T))      
@@ -185,9 +173,7 @@ def loglike(X, p, theta):
 
 #--------------------------------------------------------------------------
 def loglike_basic(X, p, theta):
-    
     """(Incomplete) Loglikelihood of Bernoulli mixture model"""
-    
     N, K = X.shape[0], len(p)
     theta = theta.T       # Transpose for easier comparability with derivations
     S, LL = np.empty((N,K)), np.empty((N,1))
@@ -203,110 +189,63 @@ def loglike_basic(X, p, theta):
             #s_nk = p[k]*prod(( theta[k,:]**(X[n,:]) ) * ( (1 - (theta[k,:]) )**(1-X[n,:]) ))            
             #S[n,k] = s_nk
             S[n,k] = y_nk
-            
        #b = np.amax(S)     
        #LL[n,:] = log(sum(S[n,:])) 
        m = np.amax(S[n,:]) 
        LL[n,:] = m + log(sum(exp(S[n,:]-m)))
-
        #LL[n,:] = log(marg)
     return sum(LL)
 #------------------------------------------------------------------------   
 
+def mixture_EM(X: np.array, p_0: np.array, theta_0: np.array, n_iter: int=100, stopcrit: int=10**(-5), verbose : bool = True): 
+    """Fit Benoulli mixture model via EM algorithm.  
+    Args:
+        X (np.array): _description_
+        p_0 (np.array): _description_
+        theta_0 (np.array): _description_
+        n_iter (int, optional): _description_. Defaults to 100.
+        stopcrit (int, optional): _description_. Defaults to 10**(-5).
+        verbose (bool, optional): _description_. Defaults to True.
 
-def mixture_EM(X, p_0, theta_0, n_iter=100, stopcrit=10**(-5), verbose = True): 
-    
+    Returns:
+        _type_: _description_
+    """
     p_current, theta_current = p_0, theta_0
     ll = [loglike(X, p_0, theta_0)]        # store log-likehoods for each iteration
     i, converged, local, delta_ll = 0, 0, 0, 10**5 ;
     
-    while i < n_iter :
-        
+    while i < n_iter:
+    #for i in tqdm(range(n_iter), total=n_iter):    
         # E-step and :
         log_likes_t1, Z_star_new = E_step(X, theta_current, p_current)
-        #print(log_likes_t1)
-        
         # M-step
         p_update, theta_update = M_step(X, Z_star_new)        
         # Incomplete loglikelihood:
-        log_likes_t = loglike(X, p_update, theta_update)    
-        #print(log_likes_t)        
-        
+        log_likes_t = loglike(X, p_update, theta_update)         
         #if np.isnan(log_likes_t):
-        #   log_likes_t = log_likes_t1
-        
+        #   log_likes_t = log_likes_t1        
         ll.append(log_likes_t)
         delta_ll_old = delta_ll
         delta_ll = log_likes_t - log_likes_t1
-        if verbose and (i%5 == 0):
-           print(i,"- delta LL.:", delta_ll)
+        if verbose and (i % 20 == 0): print(i,"- delta LL.:", delta_ll)
         converged += (abs(delta_ll) < stopcrit)*1.
         local += (abs(delta_ll) > abs(delta_ll_old))*1
         
         if converged >= 5:
           print("Stop criterion applied!")
           print(delta_ll)
-          break;
+          break
         elif i == (n_iter-1):
           print("Convergence not guaranteed.")            
         elif local >= 30:
           print("Local optimum reached.")    
           print(delta_ll)
-          break;
+          break
         else:
           p_current, theta_current = p_update, theta_update  
         i += 1
     return ll, p_update, theta_update, Z_star_new.argmax(axis=1)     # use argmax of last iteration of Zstar's as assignements estimates
 #------------------------------------------------------------------
-
-
-### Just for inspiration....
-    
-def plot_d(digit, label):
-    plt.axis('off')
-    plt.imshow(digit.reshape((28,28)), cmap=plt.cm.gray)
-    plt.title(label)
-
-def plot_ds(digits, title, labels):
-    n=digits.shape[0]
-    n_rows=n/25+1
-    n_cols=25
-    plt.figure(figsize=(n_cols * 0.9, n_rows * 1.3))
-    plt.subplots_adjust(wspace=0, hspace=0)
-    plt.suptitle(title)
-    for i in range(n):
-        plt.subplot(n_rows, n_cols, i + 1)
-        plot_d(digits[i,:], "%d" % labels[i])
-        
-def plot_clusters(predict, y, stats, data):
-    for i in range(10):
-        indices = np.where(predict == i)
-        title = "Most freq item %d, cluster size %d, majority %d " % (stats[i,2], stats[i,1], stats[i,0])
-        plot_ds(data[indices][:25], title, y[indices])
-        
-def clusters_stats(predict, y):
-    stats = np.zeros((10,3))
-    for i in range(10):
-        indices = np.where(predict == i)
-        cluster = y[indices]
-        stats[i,:] = clust_stats(cluster)
-    return stats
-        
-def clust_stats(cluster):
-    class_freq = np.zeros(10)
-    for i in range(10):
-        class_freq[i] = np.count_nonzero(cluster == i)
-    most_freq = np.argmax(class_freq)
-    n_majority = np.max(class_freq)
-    n_all = np.sum(class_freq)
-    return (n_majority, n_all, most_freq)
-    
-def clusters_purity(clusters_stats):
-    majority_sum  = clusters_stats[:,0].sum()
-    n = clusters_stats[:,1].sum()
-    return majority_sum / n
-
-#-----------------------------------------------------------------------------
     
 def dirichlet_sample(alphas):
     """
@@ -319,7 +258,6 @@ def dirichlet_sample(alphas):
 def discrete_sample(alphas):
     """
     Draw from categorical distr. using the Gumbel-max-trick.
-    
     https://casmls.github.io/general/2017/02/01/GumbelSoftmax.html
     """
     N,K = alphas.shape
@@ -367,7 +305,6 @@ def gibbs_pass(p_old, thetas_old, X, alphas = np.array([.1,.3,.6]),
     us = np.repeat(u, [D], axis=0).reshape(K,D)
     
     p_new = dirichlet_sample(alphas + u)
-    thetas_new = beta(a = gammas + v, b = deltas + us - v, size = v.shape)
-    
+    thetas_new = beta(a = gammas + v, b = deltas + us - v, size = v.shape)    
     return cat_lev, p_new, thetas_new.T
 

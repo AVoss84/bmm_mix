@@ -20,7 +20,7 @@ from bernmix.utils import bmm_utils as bmm
 pip install -r requirements.txt
 ```
 
-## Authors
+## Author
 
 * **Alexander Vosseler**
 
