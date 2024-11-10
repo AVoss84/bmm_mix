@@ -20,10 +20,6 @@ from bernmix.utils import bmm_utils as bmm
 pip install -r requirements.txt
 ```
 
-## Author
-
-* **Alexander Vosseler**
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
